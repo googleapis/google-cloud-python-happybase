@@ -10,7 +10,6 @@ script:
   - tox -e py34
   - tox -e lint
   - tox -e system-tests
-  - tox -e system-tests3
   - tox -e json-docs
 
 after_success:

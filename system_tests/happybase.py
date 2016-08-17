@@ -23,7 +23,7 @@ from gcloud.bigtable import client as client_mod
 from gcloud.bigtable.happybase.connection import Connection
 from gcloud.environment_vars import TESTS_PROJECT
 
-from bigtable import _operation_wait
+from retry import RetryResult
 from system_test_utils import unique_resource_id
 
 
@@ -61,6 +61,27 @@ class Config(object):
     """
     CONNECTION = None
     TABLE = None
+
+
+def _operation_wait(operation, max_attempts=5):
+    """Wait until an operation has completed.
+
+    :type operation: :class:`gcloud.bigtable.instance.Operation`
+    :param operation: Operation that has not finished.
+
+    :type max_attempts: int
+    :param max_attempts: (Optional) The maximum number of times to check if
+                         the operation has finished. Defaults to 5.
+
+    :rtype: bool
+    :returns: Boolean indicating if the operation finished.
+    """
+
+    def _operation_finished(result):
+        return result
+
+    retry = RetryResult(_operation_finished, max_tries=max_attempts)
+    return retry(operation.finished)()
 
 
 def set_connection():

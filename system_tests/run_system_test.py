@@ -16,28 +16,12 @@ import argparse
 import sys
 import unittest
 
-import bigquery
-import bigtable
-import bigtable_happybase
-import datastore
-import logging_
-import monitoring
-import pubsub
-import storage
+import happybase
 import system_test_utils
-import translate
 
 
 TEST_MODULES = {
-    'datastore': datastore,
-    'storage': storage,
-    'pubsub': pubsub,
-    'bigquery': bigquery,
-    'bigtable': bigtable,
-    'bigtable-happybase': bigtable_happybase,
-    'logging': logging_,
-    'monitoring': monitoring,
-    'translate': translate,
+    'happybase': happybase,
 }
 
 

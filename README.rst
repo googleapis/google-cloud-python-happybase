@@ -15,9 +15,7 @@ Google Cloud Python Happybase Client
 
 This client supports the following Google Cloud Platform services:
 
--  Happybase emulation for `Google Cloud Bigtable`_
-
-.. _Google Cloud Bigtable https://github.com/GoogleCloudPlatform/gcloud-python#google-cloud-bigtable
+-  Happybase emulation for Google Cloud Bigtable.
 
 If you need support for other Google APIs, check out the
 `Google APIs Python Client library`_.
@@ -54,7 +52,7 @@ See `CONTRIBUTING`_ for more information on how to get started.
 License
 -------
 
-Apache 2.0 - See `LICENSE`_ for more information.
+MIT - See `LICENSE`_ for more information.
 
 .. _LICENSE: https://github.com/GoogleCloudPlatform/google-cloud-python-happybase/blob/master/LICENSE
 

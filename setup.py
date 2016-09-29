@@ -14,39 +14,27 @@
 
 import os
 
-from setuptools import setup
 from setuptools import find_packages
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-
-with open(os.path.join(here, 'README.rst')) as f:
-    README = f.read()
+from setuptools import setup
 
 
-REQUIREMENTS = [
-    'gcloud',
-    'grpcio >= 1.0.0, < 2.0dev',
-]
+PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-setup(
-    name='google-cloud-happybase',
-    version='0.19.0',
-    description='API Client library for Google Cloud Happybase layer',
-    author='Google Cloud Platform',
-    author_email='jjg+gcloud-python@google.com',
-    long_description=README,
-    scripts=[],
-    url='https://github.com/GoogleCloudPlatform/gcloud-python',
-    license='Apache 2.0',
-    platforms='Posix; MacOS X; Windows',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    namespace_packages=['google', 'google.cloud'],
-    include_package_data=True,
-    zip_safe=False,
-    install_requires=REQUIREMENTS,
-    classifiers=[
+with open(os.path.join(PACKAGE_ROOT, 'README.rst')) as file_obj:
+    README = file_obj.read()
+
+# NOTE: This is duplicated throughout and we should try to
+#       consolidate.
+SETUP_BASE = {
+    'author': 'Google Cloud Platform',
+    'author_email': 'jjg+google-cloud-python@google.com',
+    'scripts': [],
+    'url': 'https://github.com/GoogleCloudPlatform/google-cloud-python',
+    'license': 'Apache 2.0',
+    'platforms': 'Posix; MacOS X; Windows',
+    'include_package_data': True,
+    'zip_safe': False,
+    'classifiers': [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
@@ -57,5 +45,27 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Topic :: Internet',
-    ]
+    ],
+}
+
+
+REQUIREMENTS = [
+    'google-cloud-bigtable >= 0.20.0',
+]
+
+SETUP_BASE.pop('url')
+setup(
+    name='google-cloud-happybase',
+    version='0.19.0',
+    description='Client library for Google Cloud Bigtable: HappyBase layer',
+    long_description=README,
+    url='https://github.com/GoogleCloudPlatform/google-cloud-python-happybase',
+    namespace_packages=[
+        'google',
+        'google.cloud',
+    ],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    install_requires=REQUIREMENTS,
+    **SETUP_BASE
 )

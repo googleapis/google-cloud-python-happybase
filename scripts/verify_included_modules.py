@@ -17,6 +17,7 @@
 
 from __future__ import print_function
 
+import argparse
 import os
 import sys
 import warnings
@@ -27,12 +28,14 @@ from sphinx.ext.intersphinx import fetch_inventory
 BASE_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..'))
 DOCS_DIR = os.path.join(BASE_DIR, 'docs')
-OBJECT_INVENTORY_RELPATH = os.path.join('_build', 'html', 'objects.inv')
 IGNORED_PREFIXES = ('test_', '_')
 IGNORED_MODULES = frozenset([
     'google.__init__',
     'google.cloud.__init__',
 ])
+PACKAGES = (
+    'src',
+)
 
 
 class SphinxApp(object):
@@ -96,17 +99,26 @@ def get_public_modules(path, base_package=None):
     return result
 
 
-def main():
-    """Main script to verify modules included."""
+def verify_modules(build_root='_build'):
+    """Verify modules included.
+
+    :type build_root: str
+    :param build_root: The root of the directory where docs are built into.
+                       Defaults to ``_build``.
+    """
+    object_inventory_relpath = os.path.join(build_root, 'html', 'objects.inv')
+
     mock_uri = ''
     inventory = fetch_inventory(SphinxApp, mock_uri,
-                                OBJECT_INVENTORY_RELPATH)
+                                object_inventory_relpath)
     sphinx_mods = set(inventory['py:module'].keys())
 
-    library_dir = os.path.join(BASE_DIR, 'src', 'google')
-    public_mods = get_public_modules(library_dir,
-                                     base_package='google')
-    public_mods = set(public_mods)
+    public_mods = set()
+    for package in PACKAGES:
+        library_dir = os.path.join(BASE_DIR, package, 'google', 'cloud')
+        package_mods = get_public_modules(library_dir,
+                                          base_package='google.cloud')
+        public_mods.update(package_mods)
 
     if not sphinx_mods <= public_mods:
         unexpected_mods = sphinx_mods - public_mods
@@ -125,6 +137,27 @@ def main():
                               for mod_name in sorted(undocumented_mods)])
         print('\n'.join(message_parts), file=sys.stderr)
         sys.exit(1)
+
+
+def get_parser():
+    """Get simple ``argparse`` parser to determine package.
+
+    :rtype: :class:`argparse.ArgumentParser`
+    :returns: The parser for this script.
+    """
+    description = ('Run check that all google-cloud '
+                   'modules are included in docs.')
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('--build-root', dest='build_root',
+                        help='The root directory where docs are located.')
+    return parser
+
+
+def main():
+    """Main script to verify modules included."""
+    parser = get_parser()
+    args = parser.parse_args()
+    verify_modules(build_root=args.build_root)
 
 
 if __name__ == '__main__':

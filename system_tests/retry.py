@@ -27,6 +27,10 @@ def _retry_all(_):
     return True
 
 
+class BackoffFailed(Exception):
+    """Retry w/ backoffs did not complete successfully."""
+
+
 class RetryBase(object):
     """Base for retrying calling a decorated function w/ exponential backoff.
 
@@ -148,7 +152,7 @@ class RetryResult(RetryBase):
 
                 time.sleep(delay)
                 tries += 1
-            return to_wrap(*args, **kwargs)
+            raise BackoffFailed()
 
         return wrapped_function
 
@@ -198,6 +202,6 @@ class RetryInstanceState(RetryBase):
 
                 time.sleep(delay)
                 tries += 1
-            return to_wrap(*args, **kwargs)
+            raise BackoffFailed()
 
         return wrapped_function

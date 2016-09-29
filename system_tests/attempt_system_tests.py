@@ -19,12 +19,40 @@ the build is for a PR and not a merged commit.
 
 If being run as part of a Travis build for a merged commit, the
 encrypted `key.json` file need be decrypted before running tests.
+
+Before encrypting:
+
+* Visit ``https://github.com/settings/tokens/new``, get a token,
+  and store the token in travis.token file.
+* Visit
+  ``https://console.cloud.google.com/apis/credentials?project={PROJ}``
+* Click "Create credentials >> Service account key", select your
+  service account and create a JSON key (we'll call it ``key.json``)
+
+Encrypt the file via::
+
+$ travis login --github-token=$(cat travis.token)
+$ travis encrypt-file \
+> --repo=GoogleCloudPlatform/google-cloud-python-happybase \
+> key.json
+
+After running ``travis encrypt-file``, take note of the ``openssl`` command
+printed out. In particular, it'll give the name of the key and
+IV (initialization vector) environment variables added to the Travis
+project.
+
+See:
+https://docs.travis-ci.com/user/encrypting-files/
 """
 
 
+from __future__ import print_function
+import argparse
 import os
 import subprocess
 import sys
+
+from google.cloud.environment_vars import CREDENTIALS
 
 from run_system_test import FailedSystemTestModule
 from run_system_test import run_module_tests
@@ -37,6 +65,9 @@ MODULES = (
 SCRIPTS_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(SCRIPTS_DIR, '..'))
 ENCRYPTED_KEYFILE = os.path.join(ROOT_DIR, 'system_tests', 'key.json.enc')
+ENCRYPTED_KEY_ENV = 'encrypted_INVALID_key'
+ENCRYPTED_INIT_VECTOR_ENV = 'encrypted_INVALID_iv'
+ALL_MODULES = object()  # Sentinel for argparser
 
 
 def check_environment():
@@ -64,9 +95,9 @@ def decrypt_keyfile():
     print('Running in Travis during merge, decrypting stored '
           'key file.')
 
-    encrypted_key = os.getenv('encrypted_a1b222e8c14d_key')
-    encrypted_iv = os.getenv('encrypted_a1b222e8c14d_iv')
-    out_file = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+    encrypted_key = os.getenv(ENCRYPTED_KEY_ENV)
+    encrypted_iv = os.getenv(ENCRYPTED_INIT_VECTOR_ENV)
+    out_file = os.getenv(CREDENTIALS)
     # Convert encrypted key file into decrypted file to be used.
     subprocess.call([
         'openssl', 'aes-256-cbc',
@@ -101,17 +132,54 @@ def prepare_to_run():
     decrypt_keyfile()
 
 
+def get_parser():
+    """Get an argument parser to determine a list of packages."""
+    parser = argparse.ArgumentParser(
+        description='google-cloud tests runner.')
+    help_msg = ('List of packages to be tested. '
+                'If left blank, tests all packages.')
+    parser.add_argument('packages', nargs='*',
+                        default=ALL_MODULES, help=help_msg)
+    return parser
+
+
+def get_modules():
+    """Get the list of modules names to run system tests for."""
+    parser = get_parser()
+    args = parser.parse_args()
+    if args.packages is ALL_MODULES:
+        result = list(MODULES)
+    else:
+        result = []
+        invalid = []
+        for package in args.packages:
+            if package in MODULES:
+                result.append(package)
+            else:
+                invalid.append(package)
+
+        if invalid:
+            msg = 'No system test for packages: ' + ', '.join(invalid)
+            print(msg, file=sys.stderr)
+            sys.exit(1)
+
+    return result
+
+
 def main():
     """Run all the system tests if necessary."""
     prepare_to_run()
+
     failed_modules = 0
-    for module in MODULES:
+    modules = get_modules()
+    for module in modules:
         try:
             run_module_tests(module)
         except FailedSystemTestModule:
             failed_modules += 1
 
     sys.exit(failed_modules)
+
 
 if __name__ == '__main__':
     main()

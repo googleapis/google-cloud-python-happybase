@@ -54,6 +54,7 @@ REQUIREMENTS = [
 ]
 
 SETUP_BASE.pop('url')
+
 setup(
     name='google-cloud-happybase',
     version='0.19.0',

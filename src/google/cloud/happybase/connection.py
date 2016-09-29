@@ -85,11 +85,7 @@ def _get_instance(timeout=None):
     if timeout is not None:
         client_kwargs['timeout_seconds'] = timeout / 1000.0
     client = Client(**client_kwargs)
-    try:
-        client.start()
-        instances, failed_locations = client.list_instances()
-    finally:
-        client.stop()
+    instances, failed_locations = client.list_instances()
 
     if len(failed_locations) != 0:
         raise ValueError('Determining instance via ListInstances encountered '
@@ -207,26 +203,14 @@ class Connection(object):
     def open(self):
         """Open the underlying transport to Cloud Bigtable.
 
-        This method opens the underlying HTTP/2 gRPC connection using a
-        :class:`~google.cloud.bigtable.client.Client` bound to the
-        :class:`~google.cloud.bigtable.instance.Instance` owned by
-        this connection.
+        This method does nothing and is provided for compatibility.
         """
-        self._instance._client.start()
 
     def close(self):
         """Close the underlying transport to Cloud Bigtable.
 
-        This method closes the underlying HTTP/2 gRPC connection using a
-        :class:`~google.cloud.bigtable.client.Client` bound to the
-        :class:`~google.cloud.bigtable.instance.Instance` owned by
-        this connection.
+        This method does nothing and is provided for compatibility.
         """
-        self._instance._client.stop()
-
-    def __del__(self):
-        if self._instance is not None:
-            self.close()
 
     def _table_name(self, name):
         """Construct a table name by optionally adding a table name prefix.

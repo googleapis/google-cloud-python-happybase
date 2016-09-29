@@ -44,8 +44,6 @@ class Test__get_instance(unittest.TestCase):
         if timeout is not None:
             expected_kwargs['timeout_seconds'] = timeout / 1000.0
         self.assertEqual(client.kwargs, expected_kwargs)
-        self.assertEqual(client.start_calls, 1)
-        self.assertEqual(client.stop_calls, 1)
 
     def test_default(self):
         instance = _Instance()
@@ -83,10 +81,7 @@ class TestConnection(unittest.TestCase):
 
     def test_constructor_defaults(self):
         instance = _Instance()  # Avoid implicit environ check.
-        self.assertEqual(instance._client.start_calls, 0)
         connection = self._makeOne(instance=instance)
-        self.assertEqual(instance._client.start_calls, 1)
-        self.assertEqual(instance._client.stop_calls, 0)
 
         self.assertEqual(connection._instance, instance)
         self.assertEqual(connection.table_prefix, None)
@@ -95,8 +90,6 @@ class TestConnection(unittest.TestCase):
     def test_constructor_no_autoconnect(self):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._makeOne(autoconnect=False, instance=instance)
-        self.assertEqual(instance._client.start_calls, 0)
-        self.assertEqual(instance._client.stop_calls, 0)
         self.assertEqual(connection.table_prefix, None)
         self.assertEqual(connection.table_prefix_separator, '_')
 
@@ -182,37 +175,6 @@ class TestConnection(unittest.TestCase):
         with self.assertRaises(TypeError):
             self._makeOne(autoconnect=False,
                           table_prefix_separator=table_prefix_separator)
-
-    def test_open(self):
-        instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
-        self.assertEqual(instance._client.start_calls, 0)
-        connection.open()
-        self.assertEqual(instance._client.start_calls, 1)
-        self.assertEqual(instance._client.stop_calls, 0)
-
-    def test_close(self):
-        instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
-        self.assertEqual(instance._client.stop_calls, 0)
-        connection.close()
-        self.assertEqual(instance._client.stop_calls, 1)
-        self.assertEqual(instance._client.start_calls, 0)
-
-    def test___del__with_instance(self):
-        instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
-        self.assertEqual(instance._client.stop_calls, 0)
-        connection.__del__()
-        self.assertEqual(instance._client.stop_calls, 1)
-
-    def test___del__no_instance(self):
-        instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
-        self.assertEqual(instance._client.stop_calls, 0)
-        del connection._instance
-        connection.__del__()
-        self.assertEqual(instance._client.stop_calls, 0)
 
     def test__table_name_with_prefix_set(self):
         table_prefix = 'table-prefix'
@@ -655,14 +617,6 @@ class _Client(object):
         self.failed_locations = kwargs.pop('failed_locations', [])
         self.args = args
         self.kwargs = kwargs
-        self.start_calls = 0
-        self.stop_calls = 0
-
-    def start(self):
-        self.start_calls += 1
-
-    def stop(self):
-        self.stop_calls += 1
 
     def list_instances(self):
         return self.instances, self.failed_locations

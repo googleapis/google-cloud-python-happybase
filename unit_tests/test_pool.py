@@ -215,12 +215,7 @@ class TestConnectionPool(unittest.TestCase):
 
 
 class _Client(object):
-
-    def __init__(self):
-        self.stop_calls = 0
-
-    def stop(self):
-        self.stop_calls += 1
+    pass
 
 
 class _Connection(object):

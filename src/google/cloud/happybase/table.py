@@ -20,21 +20,21 @@ import warnings
 
 import six
 
-from gcloud._helpers import _datetime_from_microseconds
-from gcloud._helpers import _microseconds_from_datetime
-from gcloud._helpers import _to_bytes
-from gcloud.bigtable.column_family import GCRuleIntersection
-from gcloud.bigtable.column_family import MaxAgeGCRule
-from gcloud.bigtable.column_family import MaxVersionsGCRule
-from gcloud.bigtable.row_filters import CellsColumnLimitFilter
-from gcloud.bigtable.row_filters import ColumnQualifierRegexFilter
-from gcloud.bigtable.row_filters import FamilyNameRegexFilter
-from gcloud.bigtable.row_filters import RowFilterChain
-from gcloud.bigtable.row_filters import RowFilterUnion
-from gcloud.bigtable.row_filters import RowKeyRegexFilter
-from gcloud.bigtable.row_filters import TimestampRange
-from gcloud.bigtable.row_filters import TimestampRangeFilter
-from gcloud.bigtable.table import Table as _LowLevelTable
+from google.cloud._helpers import _datetime_from_microseconds
+from google.cloud._helpers import _microseconds_from_datetime
+from google.cloud._helpers import _to_bytes
+from google.cloud.bigtable.column_family import GCRuleIntersection
+from google.cloud.bigtable.column_family import MaxAgeGCRule
+from google.cloud.bigtable.column_family import MaxVersionsGCRule
+from google.cloud.bigtable.row_filters import CellsColumnLimitFilter
+from google.cloud.bigtable.row_filters import ColumnQualifierRegexFilter
+from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
+from google.cloud.bigtable.row_filters import RowFilterChain
+from google.cloud.bigtable.row_filters import RowFilterUnion
+from google.cloud.bigtable.row_filters import RowKeyRegexFilter
+from google.cloud.bigtable.row_filters import TimestampRange
+from google.cloud.bigtable.row_filters import TimestampRangeFilter
+from google.cloud.bigtable.table import Table as _LowLevelTable
 
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL
@@ -320,7 +320,7 @@ class Table(object):
         used this as an HBase filter string. (See the `Thrift docs`_ for more
         details on those filters.) However, Google Cloud Bigtable doesn't
         support those filter strings so a
-        :class:`~gcloud.bigtable.row.RowFilter` should be used instead.
+        :class:`~google.cloud.bigtable.row.RowFilter` should be used instead.
 
         .. _Thrift docs: http://hbase.apache.org/0.94/book/thrift.html
 
@@ -498,7 +498,7 @@ class Table(object):
                     for Cloud Bigtable since it does not have a Write Ahead
                     Log.
 
-        :rtype: :class:`Batch <gcloud.bigtable.happybase.batch.Batch>`
+        :rtype: :class:`~google.cloud.bigtable.happybase.batch.Batch`
         :returns: A batch bound to this table.
         """
         return Batch(self, timestamp=timestamp, batch_size=batch_size,
@@ -631,12 +631,13 @@ def _gc_rule_to_dict(gc_rule):
 
     Only does this if the garbage collection rule is:
 
-    * :class:`gcloud.bigtable.column_family.MaxAgeGCRule`
-    * :class:`gcloud.bigtable.column_family.MaxVersionsGCRule`
-    * Composite :class:`gcloud.bigtable.column_family.GCRuleIntersection`
+    * :class:`~google.cloud.bigtable.column_family.MaxAgeGCRule`
+    * :class:`~google.cloud.bigtable.column_family.MaxVersionsGCRule`
+    * Composite
+      :class:`~google.cloud.bigtable.column_family.GCRuleIntersection`
       with two rules, one each of type
-      :class:`gcloud.bigtable.column_family.MaxAgeGCRule` and
-      :class:`gcloud.bigtable.column_family.MaxVersionsGCRule`
+      :class:`~google.cloud.bigtable.column_family.MaxAgeGCRule` and
+      :class:`~google.cloud.bigtable.column_family.MaxVersionsGCRule`
 
     Otherwise, just returns the input without change.
 
@@ -646,7 +647,7 @@ def _gc_rule_to_dict(gc_rule):
                     (if possible).
 
     :rtype: dict or
-            :class:`gcloud.bigtable.column_family.GarbageCollectionRule`
+            :class:`~google.cloud.bigtable.column_family.GarbageCollectionRule`
     :returns: The converted garbage collection rule.
     """
     result = gc_rule
@@ -693,7 +694,7 @@ def _string_successor(str_val):
     Determines shortest string that sorts after the given string when
     compared using regular string comparison semantics.
 
-    Modeled after implementation in ``gcloud-golang``.
+    Modeled after implementation in ``google-cloud-go``.
 
     Increments the last byte that is smaller than ``0xFF``, and
     drops everything after it. If the string only contains ``0xFF`` bytes,
@@ -733,7 +734,7 @@ def _convert_to_time_range(timestamp=None):
                       epoch). Intended to be used as the end of an HBase
                       time range, which is exclusive.
 
-    :rtype: :class:`gcloud.bigtable.row.TimestampRange`,
+    :rtype: :class:`~google.cloud.bigtable.row.TimestampRange`,
             :data:`NoneType <types.NoneType>`
     :returns: The timestamp range corresponding to the passed in
               ``timestamp``.
@@ -751,7 +752,7 @@ def _cells_to_pairs(cells, include_timestamp=False):
     For example::
 
       >>> import datetime
-      >>> from gcloud.bigtable.row_data import Cell
+      >>> from google.cloud.bigtable.row_data import Cell
       >>> cell1 = Cell(b'val1', datetime.datetime.utcnow())
       >>> cell2 = Cell(b'val2', datetime.datetime.utcnow())
       >>> _cells_to_pairs([cell1, cell2])
@@ -760,8 +761,8 @@ def _cells_to_pairs(cells, include_timestamp=False):
       [(b'val1', 1456361486255), (b'val2', 1456361491927)]
 
     :type cells: list
-    :param cells: List of :class:`gcloud.bigtable.row_data.Cell` returned
-                  from a read request.
+    :param cells: List of :class:`~google.cloud.bigtable.row_data.Cell`
+                  returned from a read request.
 
     :type include_timestamp: bool
     :param include_timestamp: Flag to indicate if cell timestamps should be
@@ -793,7 +794,7 @@ def _partial_row_to_dict(partial_row_data, include_timestamp=False):
     For example::
 
       >>> import datetime
-      >>> from gcloud.bigtable.row_data import Cell, PartialRowData
+      >>> from google.cloud.bigtable.row_data import Cell, PartialRowData
       >>> cell1 = Cell(b'val1', datetime.datetime.utcnow())
       >>> cell2 = Cell(b'val2', datetime.datetime.utcnow())
       >>> row_data = PartialRowData(b'row-key')
@@ -845,7 +846,7 @@ def _filter_chain_helper(column=None, versions=None, timestamp=None,
     :type filters: list
     :param filters: (Optional) List of existing filters to be extended.
 
-    :rtype: :class:`RowFilter <gcloud.bigtable.row.RowFilter>`
+    :rtype: :class:`~google.cloud.bigtable.row.RowFilter`
     :returns: The chained filter created, or just a single filter if only
               one was needed.
     :raises: :class:`ValueError <exceptions.ValueError>` if there are no
@@ -888,7 +889,7 @@ def _scan_filter_helper(row_start, row_stop, row_prefix, columns,
     if legacy_args:
         legacy_args = ', '.join(legacy_args)
         message = ('The HappyBase legacy arguments %s were used. These '
-                   'arguments are unused by gcloud.' % (legacy_args,))
+                   'arguments are unused by google-cloud.' % (legacy_args,))
         _WARN(message)
     if kwargs:
         raise TypeError('Received unexpected arguments', kwargs.keys())
@@ -906,7 +907,7 @@ def _scan_filter_helper(row_start, row_stop, row_prefix, columns,
     if isinstance(filter_, six.string_types):
         raise TypeError('Specifying filters as a string is not supported '
                         'by Cloud Bigtable. Use a '
-                        'gcloud.bigtable.row.RowFilter instead.')
+                        'google.cloud.bigtable.row.RowFilter instead.')
     elif filter_ is not None:
         filters.append(filter_)
 
@@ -929,7 +930,7 @@ def _columns_filter_helper(columns):
                       * an entire column family: ``fam`` or ``fam:``
                       * a single column: ``fam:col``
 
-    :rtype: :class:`RowFilter <gcloud.bigtable.row.RowFilter>`
+    :rtype: :class:`~google.cloud.bigtable.row.RowFilter`
     :returns: The union filter created containing all of the matched columns.
     :raises: :class:`ValueError <exceptions.ValueError>` if there are no
              filters to union.
@@ -960,7 +961,7 @@ def _row_keys_filter_helper(row_keys):
     :type row_keys: list
     :param row_keys: Iterable containing row keys (as strings).
 
-    :rtype: :class:`RowFilter <gcloud.bigtable.row.RowFilter>`
+    :rtype: :class:`~google.cloud.bigtable.row.RowFilter`
     :returns: The union filter created containing all of the row keys.
     :raises: :class:`ValueError <exceptions.ValueError>` if there are no
              filters to union.

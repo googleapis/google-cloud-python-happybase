@@ -64,7 +64,7 @@ class TestConnectionPool(unittest.TestCase):
                              table_prefix_separator)
 
     def test_constructor_ignores_autoconnect(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
         from google.cloud.happybase import pool as MUT
 
@@ -98,7 +98,7 @@ class TestConnectionPool(unittest.TestCase):
             self.assertFalse(connection._open_called)
 
     def test_constructor_infers_instance(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
         from google.cloud.happybase import pool as MUT
 
@@ -137,7 +137,7 @@ class TestConnectionPool(unittest.TestCase):
             self._makeOne(size)
 
     def _makeOneWithMockQueue(self, queue_return):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import pool as MUT
 
         # We are going to use a fake queue, so we don't want any connections
@@ -215,12 +215,7 @@ class TestConnectionPool(unittest.TestCase):
 
 
 class _Client(object):
-
-    def __init__(self):
-        self.stop_calls = 0
-
-    def stop(self):
-        self.stop_calls += 1
+    pass
 
 
 class _Connection(object):

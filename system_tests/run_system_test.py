@@ -31,7 +31,7 @@ class FailedSystemTestModule(Exception):
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description='GCloud test runner against actual project.')
+        description='Google Cloud test runner against actual project.')
     parser.add_argument('--package', dest='package',
                         choices=TEST_MODULES.keys(),
                         default='datastore', help='Package to be tested.')

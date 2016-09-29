@@ -26,13 +26,13 @@ from grpc.framework.interfaces.face import face
 try:
     from happybase.hbase.ttypes import AlreadyExists
 except ImportError:
-    from gcloud.exceptions import Conflict as AlreadyExists
+    from google.cloud.exceptions import Conflict as AlreadyExists
 
-from gcloud.bigtable.client import Client
-from gcloud.bigtable.column_family import GCRuleIntersection
-from gcloud.bigtable.column_family import MaxAgeGCRule
-from gcloud.bigtable.column_family import MaxVersionsGCRule
-from gcloud.bigtable.table import Table as _LowLevelTable
+from google.cloud.bigtable.client import Client
+from google.cloud.bigtable.column_family import GCRuleIntersection
+from google.cloud.bigtable.column_family import MaxAgeGCRule
+from google.cloud.bigtable.column_family import MaxVersionsGCRule
+from google.cloud.bigtable.table import Table as _LowLevelTable
 
 from google.cloud.happybase.table import Table
 
@@ -75,7 +75,7 @@ def _get_instance(timeout=None):
     :type timeout: int
     :param timeout: (Optional) The socket timeout in milliseconds.
 
-    :rtype: :class:`gcloud.bigtable.instance.Instance`
+    :rtype: :class:`~google.cloud.bigtable.instance.Instance`
     :returns: The unique instance owned by the project inferred from
               the environment.
     :raises ValueError: if there is a failed location or any number of
@@ -85,11 +85,7 @@ def _get_instance(timeout=None):
     if timeout is not None:
         client_kwargs['timeout_seconds'] = timeout / 1000.0
     client = Client(**client_kwargs)
-    try:
-        client.start()
-        instances, failed_locations = client.list_instances()
-    finally:
-        client.stop()
+    instances, failed_locations = client.list_instances()
 
     if len(failed_locations) != 0:
         raise ValueError('Determining instance via ListInstances encountered '
@@ -110,9 +106,9 @@ class Connection(object):
 
         If you pass a ``instance``, it will be :meth:`.Instance.copy`-ed before
         being stored on the new connection. This also copies the
-        :class:`Client <gcloud.bigtable.client.Client>` that created the
-        :class:`Instance <gcloud.bigtable.instance.Instance>` instance and the
-        :class:`Credentials <oauth2client.client.Credentials>` stored on the
+        :class:`~google.cloud.bigtable.client.Client` that created the
+        :class:`~google.cloud.bigtable.instance.Instance` instance and the
+        :class:`~oauth2client.client.Credentials` stored on the
         client.
 
     The arguments ``host``, ``port``, ``compat``, ``transport`` and
@@ -134,13 +130,13 @@ class Connection(object):
     :param table_prefix_separator: (Optional) Separator used with
                                    ``table_prefix``. Defaults to ``_``.
 
-    :type instance: :class:`Instance <gcloud.bigtable.instance.Instance>`
+    :type instance: :class:`~google.cloud.bigtable.instance.Instance`
     :param instance: (Optional) A Cloud Bigtable instance. The instance also
                     owns a client for making gRPC requests to the Cloud
                     Bigtable API. If not passed in, defaults to creating client
                     with ``admin=True`` and using the ``timeout`` here for the
                     ``timeout_seconds`` argument to the
-                    :class:`Client <gcloud.bigtable.client.Client>`
+                    :class:`~google.cloud.bigtable.client.Client`
                     constructor. The credentials for the client
                     will be the implicit ones loaded from the environment.
                     Then that client is used to retrieve all the instances
@@ -196,7 +192,7 @@ class Connection(object):
         if common_args:
             all_args = ', '.join(common_args)
             message = ('The HappyBase legacy arguments %s were used. These '
-                       'arguments are unused by gcloud.' % (all_args,))
+                       'arguments are unused by google-cloud.' % (all_args,))
             _WARN(message)
         for arg_name in common_args:
             arguments_dict.pop(arg_name)
@@ -207,26 +203,14 @@ class Connection(object):
     def open(self):
         """Open the underlying transport to Cloud Bigtable.
 
-        This method opens the underlying HTTP/2 gRPC connection using a
-        :class:`Client <gcloud.bigtable.client.Client>` bound to the
-        :class:`Instance <gcloud.bigtable.instance.Instance>` owned by
-        this connection.
+        This method does nothing and is provided for compatibility.
         """
-        self._instance._client.start()
 
     def close(self):
         """Close the underlying transport to Cloud Bigtable.
 
-        This method closes the underlying HTTP/2 gRPC connection using a
-        :class:`Client <gcloud.bigtable.client.Client>` bound to the
-        :class:`Instance <gcloud.bigtable.instance.Instance>` owned by
-        this connection.
+        This method does nothing and is provided for compatibility.
         """
-        self._instance._client.stop()
-
-    def __del__(self):
-        if self._instance is not None:
-            self.close()
 
     def _table_name(self, name):
         """Construct a table name by optionally adding a table name prefix.

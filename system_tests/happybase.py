@@ -18,10 +18,8 @@ import struct
 
 import unittest
 
-from gcloud import _helpers
-from gcloud.bigtable import client as client_mod
-from gcloud.bigtable.happybase.connection import Connection
-from gcloud.environment_vars import TESTS_PROJECT
+from google.cloud.bigtable import client as client_mod
+from google.cloud.happybase.connection import Connection
 
 from retry import RetryResult
 from system_test_utils import unique_resource_id
@@ -29,7 +27,6 @@ from system_test_utils import unique_resource_id
 
 _PACK_I64 = struct.Struct('>q').pack
 _FIRST_ELT = operator.itemgetter(0)
-_helpers.PROJECT = TESTS_PROJECT
 LOCATION_ID = 'us-central1-c'
 # NOTE: Avoid using the same name as in bigtable.py
 INSTANCE_ID = 'gcl-hb' + unique_resource_id('-')
@@ -63,33 +60,37 @@ class Config(object):
     TABLE = None
 
 
-def _operation_wait(operation, max_attempts=5):
+def _operation_complete(result):
+    """Identity function.
+
+    Meant to return a boolean, but the value passed in is
+    already equal to that value.
+    """
+    return result
+
+
+def _wait_until_complete(operation, max_attempts=5):
     """Wait until an operation has completed.
 
-    :type operation: :class:`gcloud.bigtable.instance.Operation`
-    :param operation: Operation that has not finished.
+    :type operation: :class:`google.cloud.operation.Operation`
+    :param operation: Operation that has not completed.
 
     :type max_attempts: int
     :param max_attempts: (Optional) The maximum number of times to check if
-                         the operation has finished. Defaults to 5.
+                         the operation has completed. Defaults to 5.
 
     :rtype: bool
-    :returns: Boolean indicating if the operation finished.
+    :returns: Boolean indicating if the operation is complete.
     """
-
-    def _operation_finished(result):
-        return result
-
-    retry = RetryResult(_operation_finished, max_tries=max_attempts)
-    return retry(operation.finished)()
+    retry = RetryResult(_operation_complete, max_tries=max_attempts)
+    return retry(operation.poll)()
 
 
 def set_connection():
     client = client_mod.Client(admin=True)
     instance = client.instance(INSTANCE_ID, LOCATION_ID)
-    client.start()
     operation = instance.create()
-    if not _operation_wait(operation):
+    if not _wait_until_complete(operation):
         raise RuntimeError('Instance creation exceed 5 seconds.')
     Config.CONNECTION = Connection(instance=instance)
 

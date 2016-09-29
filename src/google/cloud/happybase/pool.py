@@ -142,8 +142,7 @@ class ConnectionPool(object):
             with self._lock:
                 self._thread_connections.current = connection
 
-        # This is a no-op for connections that have already been opened
-        # since they just call Client.start().
+        # This is a no-op.
         connection.open()
         yield connection
 

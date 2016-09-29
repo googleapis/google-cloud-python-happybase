@@ -45,8 +45,8 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
     def test_constructor_explicit(self):
-        from gcloud._helpers import _datetime_from_microseconds
-        from gcloud.bigtable.row_filters import TimestampRange
+        from google.cloud._helpers import _datetime_from_microseconds
+        from google.cloud.bigtable.row_filters import TimestampRange
 
         table = object()
         timestamp = 144185290431
@@ -68,7 +68,7 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
     def test_constructor_with_non_default_wal(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import batch as MUT
 
         warned = []
@@ -205,7 +205,7 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._row_map, {row_key: mock_row})
 
     def test_put_bad_wal(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import batch as MUT
 
         warned = []
@@ -321,7 +321,7 @@ class TestBatch(unittest.TestCase):
             self._delete_columns_test_helper(time_range=time_range)
 
     def test_delete_bad_wal(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import batch as MUT
 
         warned = []

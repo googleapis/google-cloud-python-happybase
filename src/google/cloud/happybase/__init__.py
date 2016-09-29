@@ -92,7 +92,7 @@ API Behavior Changes
 
   .. code:: python
 
-      from gcloud.bigtable.client import Client
+      from google.cloud.bigtable.client import Client
       client = Client(project=PROJECT_ID, admin=True)
       instance = client.instance(instance_id, location_id)
       instance.reload()
@@ -125,9 +125,9 @@ API Behavior Changes
 
   Only ``max_versions`` and ``time_to_live`` are availabe in Cloud Bigtable
   (as
-  :class:`MaxVersionsGCRule <gcloud.bigtable.column_family.MaxVersionsGCRule>`
+  :class:`~google.cloud.bigtable.column_family.MaxVersionsGCRule`
   and
-  :class:`MaxAgeGCRule <gcloud.bigtable.column_family.MaxAgeGCRule>`).
+  :class:`~google.cloud.bigtable.column_family.MaxAgeGCRule`).
 
   In addition to using a dictionary for specifying column family options,
   we also accept instances of :class:`.GarbageCollectionRule` or subclasses.

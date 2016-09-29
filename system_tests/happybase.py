@@ -18,10 +18,10 @@ import struct
 
 import unittest
 
-from gcloud import _helpers
-from gcloud.bigtable import client as client_mod
-from gcloud.bigtable.happybase.connection import Connection
-from gcloud.environment_vars import TESTS_PROJECT
+from google.cloud import _helpers
+from google.cloud.bigtable import client as client_mod
+from google.cloud.bigtable.happybase.connection import Connection
+from google.cloud.environment_vars import TESTS_PROJECT
 
 from retry import RetryResult
 from system_test_utils import unique_resource_id
@@ -66,7 +66,7 @@ class Config(object):
 def _operation_wait(operation, max_attempts=5):
     """Wait until an operation has completed.
 
-    :type operation: :class:`gcloud.bigtable.instance.Operation`
+    :type operation: :class:`~google.cloud.bigtable.instance.Operation`
     :param operation: Operation that has not finished.
 
     :type max_attempts: int

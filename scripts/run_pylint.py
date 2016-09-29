@@ -141,8 +141,8 @@ def get_files_for_linting(allow_limited=True):
     this value is not dependable.
 
     To allow faster local ``tox`` runs, the environment variables
-    ``GCLOUD_REMOTE_FOR_LINT`` and ``GCLOUD_BRANCH_FOR_LINT`` can be set to
-    specify a remote branch to diff against.
+    ``GOOGLE_CLOUD_REMOTE_FOR_LINT`` and ``GOOGLE_CLOUD_BRANCH_FOR_LINT`` can
+    be set to specify a remote branch to diff against.
 
     :type allow_limited: bool
     :param allow_limited: Boolean indicating if a reduced set of files can
@@ -160,8 +160,8 @@ def get_files_for_linting(allow_limited=True):
         diff_base = 'origin/master'
     elif os.getenv('TRAVIS') is None:
         # Only allow specified remote and branch in local dev.
-        remote = os.getenv('GCLOUD_REMOTE_FOR_LINT')
-        branch = os.getenv('GCLOUD_BRANCH_FOR_LINT')
+        remote = os.getenv('GOOGLE_CLOUD_REMOTE_FOR_LINT')
+        branch = os.getenv('GOOGLE_CLOUD_BRANCH_FOR_LINT')
         if remote is not None and branch is not None:
             diff_base = '%s/%s' % (remote, branch)
 

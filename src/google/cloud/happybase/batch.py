@@ -20,8 +20,8 @@ import warnings
 
 import six
 
-from gcloud._helpers import _datetime_from_microseconds
-from gcloud.bigtable.row_filters import TimestampRange
+from google.cloud._helpers import _datetime_from_microseconds
+from google.cloud.bigtable.row_filters import TimestampRange
 
 
 _WAL_SENTINEL = object()
@@ -129,7 +129,7 @@ class Batch(object):
         :type row_key: str
         :param row_key: The row key for a row stored in the map.
 
-        :rtype: :class:`Row <gcloud.bigtable.row.Row>`
+        :rtype: :class:`~google.cloud.bigtable.row.Row`
         :returns: The newly created or stored row that will hold mutations.
         """
         if row_key not in self._row_map:
@@ -181,7 +181,7 @@ class Batch(object):
                           * an entire column family: ``fam`` or ``fam:``
                           * a single column: ``fam:col``
 
-        :type row_object: :class:`Row <gcloud_bigtable.row.Row>`
+        :type row_object: :class:`~google.cloud.bigtable.row.Row`
         :param row_object: The row which will hold the delete mutations.
 
         :raises: :class:`ValueError <exceptions.ValueError>` if the delete

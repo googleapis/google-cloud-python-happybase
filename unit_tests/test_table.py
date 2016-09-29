@@ -47,7 +47,7 @@ class TestTable(unittest.TestCase):
         return self._getTargetClass()(*args, **kwargs)
 
     def test_constructor(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -79,7 +79,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table._low_level_table, None)
 
     def test_families(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -122,7 +122,7 @@ class TestTable(unittest.TestCase):
             table.regions()
 
     def test_row_empty_row(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -161,7 +161,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_row_with_columns(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -209,9 +209,9 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_row_with_results(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_key = 'row-key'
         name = 'table-name'
@@ -274,7 +274,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, [])
 
     def test_rows_with_columns(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -334,9 +334,9 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_rows_with_results(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_key1 = 'row-key1'
         row_key2 = 'row-key2'
@@ -407,7 +407,7 @@ class TestTable(unittest.TestCase):
                          [((fake_cells,), to_pairs_kwargs)])
 
     def test_cells_empty_row(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -446,9 +446,9 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_cells_with_results(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_key = 'row-key'
         name = 'table-name'
@@ -508,7 +508,7 @@ class TestTable(unittest.TestCase):
                          [((fake_cells,), to_pairs_kwargs)])
 
     def test_scan_with_batch_size(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         warned = []
@@ -529,7 +529,7 @@ class TestTable(unittest.TestCase):
         self.assertIn('batch_size', warned[0])
 
     def test_scan_with_scan_batching(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         warned = []
@@ -550,7 +550,7 @@ class TestTable(unittest.TestCase):
         self.assertIn('scan_batching', warned[0])
 
     def test_scan_with_sorted_columns(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         warned = []
@@ -596,7 +596,7 @@ class TestTable(unittest.TestCase):
                           include_timestamp=False, limit=None, rr_result=None,
                           expected_result=None):
         import types
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -693,7 +693,7 @@ class TestTable(unittest.TestCase):
         self._scan_test_helper(timestamp=timestamp, limit=limit)
 
     def test_scan_with_results(self):
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_key1 = 'row-key1'
         row1 = PartialRowData(row_key1)
@@ -706,7 +706,7 @@ class TestTable(unittest.TestCase):
                                expected_result=expected_result)
 
     def test_put(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
         from google.cloud.happybase.table import _WAL_SENTINEL
 
@@ -746,7 +746,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(batch.delete_args, [])
 
     def test_delete(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
         from google.cloud.happybase.table import _WAL_SENTINEL
 
@@ -786,7 +786,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(batch.delete_args, [(row, columns)])
 
     def test_batch(self):
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -890,7 +890,7 @@ class TestTable(unittest.TestCase):
 
     def test_counter_set(self):
         import struct
-        from gcloud._testing import _Monkey
+        from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
 
         name = 'table-name'
@@ -1025,7 +1025,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         self.assertEqual(result, {})
 
     def test_with_max_versions(self):
-        from gcloud.bigtable.column_family import MaxVersionsGCRule
+        from google.cloud.bigtable.column_family import MaxVersionsGCRule
 
         max_versions = 2
         gc_rule = MaxVersionsGCRule(max_versions)
@@ -1035,7 +1035,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
 
     def test_with_max_age(self):
         import datetime
-        from gcloud.bigtable.column_family import MaxAgeGCRule
+        from google.cloud.bigtable.column_family import MaxAgeGCRule
 
         time_to_live = 101
         max_age = datetime.timedelta(seconds=time_to_live)
@@ -1050,22 +1050,22 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         self.assertTrue(result is gc_rule)
 
     def test_with_gc_rule_union(self):
-        from gcloud.bigtable.column_family import GCRuleUnion
+        from google.cloud.bigtable.column_family import GCRuleUnion
 
         gc_rule = GCRuleUnion(rules=[])
         result = self._callFUT(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_intersection_other_than_two(self):
-        from gcloud.bigtable.column_family import GCRuleIntersection
+        from google.cloud.bigtable.column_family import GCRuleIntersection
 
         gc_rule = GCRuleIntersection(rules=[])
         result = self._callFUT(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_intersection_two_max_num_versions(self):
-        from gcloud.bigtable.column_family import GCRuleIntersection
-        from gcloud.bigtable.column_family import MaxVersionsGCRule
+        from google.cloud.bigtable.column_family import GCRuleIntersection
+        from google.cloud.bigtable.column_family import MaxVersionsGCRule
 
         rule1 = MaxVersionsGCRule(1)
         rule2 = MaxVersionsGCRule(2)
@@ -1075,9 +1075,9 @@ class Test__gc_rule_to_dict(unittest.TestCase):
 
     def test_with_intersection_two_rules(self):
         import datetime
-        from gcloud.bigtable.column_family import GCRuleIntersection
-        from gcloud.bigtable.column_family import MaxAgeGCRule
-        from gcloud.bigtable.column_family import MaxVersionsGCRule
+        from google.cloud.bigtable.column_family import GCRuleIntersection
+        from google.cloud.bigtable.column_family import MaxAgeGCRule
+        from google.cloud.bigtable.column_family import MaxVersionsGCRule
 
         time_to_live = 101
         max_age = datetime.timedelta(seconds=time_to_live)
@@ -1093,7 +1093,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_with_intersection_two_nested_rules(self):
-        from gcloud.bigtable.column_family import GCRuleIntersection
+        from google.cloud.bigtable.column_family import GCRuleIntersection
 
         rule1 = GCRuleIntersection(rules=[])
         rule2 = GCRuleIntersection(rules=[])
@@ -1142,8 +1142,8 @@ class Test__convert_to_time_range(unittest.TestCase):
             self._callFUT(timestamp=timestamp)
 
     def test_success(self):
-        from gcloud._helpers import _datetime_from_microseconds
-        from gcloud.bigtable.row_filters import TimestampRange
+        from google.cloud._helpers import _datetime_from_microseconds
+        from google.cloud.bigtable.row_filters import TimestampRange
 
         timestamp = 1441928298571
         ts_dt = _datetime_from_microseconds(1000 * timestamp)
@@ -1160,7 +1160,7 @@ class Test__cells_to_pairs(unittest.TestCase):
         return _cells_to_pairs(*args, **kwargs)
 
     def test_without_timestamp(self):
-        from gcloud.bigtable.row_data import Cell
+        from google.cloud.bigtable.row_data import Cell
 
         value1 = 'foo'
         cell1 = Cell(value=value1, timestamp=None)
@@ -1171,8 +1171,8 @@ class Test__cells_to_pairs(unittest.TestCase):
         self.assertEqual(result, [value1, value2])
 
     def test_with_timestamp(self):
-        from gcloud._helpers import _datetime_from_microseconds
-        from gcloud.bigtable.row_data import Cell
+        from google.cloud._helpers import _datetime_from_microseconds
+        from google.cloud.bigtable.row_data import Cell
 
         value1 = 'foo'
         ts1_millis = 1221934570148
@@ -1197,8 +1197,8 @@ class Test__partial_row_to_dict(unittest.TestCase):
                                     include_timestamp=include_timestamp)
 
     def test_without_timestamp(self):
-        from gcloud.bigtable.row_data import Cell
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud.bigtable.row_data import Cell
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_data = PartialRowData(b'row-key')
         val1 = b'hi-im-bytes'
@@ -1215,9 +1215,9 @@ class Test__partial_row_to_dict(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_with_timestamp(self):
-        from gcloud._helpers import _datetime_from_microseconds
-        from gcloud.bigtable.row_data import Cell
-        from gcloud.bigtable.row_data import PartialRowData
+        from google.cloud._helpers import _datetime_from_microseconds
+        from google.cloud.bigtable.row_data import Cell
+        from google.cloud.bigtable.row_data import PartialRowData
 
         row_data = PartialRowData(b'row-key')
         val1 = b'hi-im-bytes'
@@ -1249,7 +1249,7 @@ class Test__filter_chain_helper(unittest.TestCase):
             self._callFUT()
 
     def test_single_filter(self):
-        from gcloud.bigtable.row_filters import CellsColumnLimitFilter
+        from google.cloud.bigtable.row_filters import CellsColumnLimitFilter
 
         versions = 1337
         result = self._callFUT(versions=versions)
@@ -1259,7 +1259,7 @@ class Test__filter_chain_helper(unittest.TestCase):
         self.assertEqual(result.num_cells, versions)
 
     def test_existing_filters(self):
-        from gcloud.bigtable.row_filters import CellsColumnLimitFilter
+        from google.cloud.bigtable.row_filters import CellsColumnLimitFilter
 
         filters = []
         versions = 1337
@@ -1274,9 +1274,10 @@ class Test__filter_chain_helper(unittest.TestCase):
 
     def _column_helper(self, num_filters, versions=None, timestamp=None,
                        column=None, col_fam=None, qual=None):
-        from gcloud.bigtable.row_filters import ColumnQualifierRegexFilter
-        from gcloud.bigtable.row_filters import FamilyNameRegexFilter
-        from gcloud.bigtable.row_filters import RowFilterChain
+        from google.cloud.bigtable.row_filters import (
+            ColumnQualifierRegexFilter)
+        from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
+        from google.cloud.bigtable.row_filters import RowFilterChain
 
         if col_fam is None:
             col_fam = 'cf1'
@@ -1312,7 +1313,7 @@ class Test__filter_chain_helper(unittest.TestCase):
                             col_fam=u'cfU', qual=u'qualN')
 
     def test_with_versions(self):
-        from gcloud.bigtable.row_filters import CellsColumnLimitFilter
+        from google.cloud.bigtable.row_filters import CellsColumnLimitFilter
 
         versions = 11
         result = self._column_helper(num_filters=3, versions=versions)
@@ -1324,9 +1325,9 @@ class Test__filter_chain_helper(unittest.TestCase):
         self.assertEqual(version_filter.num_cells, versions)
 
     def test_with_timestamp(self):
-        from gcloud._helpers import _datetime_from_microseconds
-        from gcloud.bigtable.row_filters import TimestampRange
-        from gcloud.bigtable.row_filters import TimestampRangeFilter
+        from google.cloud._helpers import _datetime_from_microseconds
+        from google.cloud.bigtable.row_filters import TimestampRange
+        from google.cloud.bigtable.row_filters import TimestampRangeFilter
 
         timestamp = 1441928298571
         result = self._column_helper(num_filters=3, timestamp=timestamp)
@@ -1360,7 +1361,7 @@ class Test__columns_filter_helper(unittest.TestCase):
             self._callFUT(columns)
 
     def test_single_column(self):
-        from gcloud.bigtable.row_filters import FamilyNameRegexFilter
+        from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
 
         col_fam = 'cf1'
         columns = [col_fam]
@@ -1369,10 +1370,11 @@ class Test__columns_filter_helper(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_column_and_column_families(self):
-        from gcloud.bigtable.row_filters import ColumnQualifierRegexFilter
-        from gcloud.bigtable.row_filters import FamilyNameRegexFilter
-        from gcloud.bigtable.row_filters import RowFilterChain
-        from gcloud.bigtable.row_filters import RowFilterUnion
+        from google.cloud.bigtable.row_filters import (
+            ColumnQualifierRegexFilter)
+        from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
+        from google.cloud.bigtable.row_filters import RowFilterChain
+        from google.cloud.bigtable.row_filters import RowFilterUnion
 
         col_fam1 = 'cf1'
         col_fam2 = 'cf2'
@@ -1408,7 +1410,7 @@ class Test__row_keys_filter_helper(unittest.TestCase):
             self._callFUT(row_keys)
 
     def test_single_row(self):
-        from gcloud.bigtable.row_filters import RowKeyRegexFilter
+        from google.cloud.bigtable.row_filters import RowKeyRegexFilter
 
         row_key = b'row-key'
         row_keys = [row_key]
@@ -1417,8 +1419,8 @@ class Test__row_keys_filter_helper(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_many_rows(self):
-        from gcloud.bigtable.row_filters import RowFilterUnion
-        from gcloud.bigtable.row_filters import RowKeyRegexFilter
+        from google.cloud.bigtable.row_filters import RowFilterUnion
+        from google.cloud.bigtable.row_filters import RowKeyRegexFilter
 
         row_key1 = b'row-key1'
         row_key2 = b'row-key2'

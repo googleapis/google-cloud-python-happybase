@@ -33,7 +33,6 @@ import sphinx_rtd_theme
 
 
 ON_READ_THE_DOCS = os.environ.get('READTHEDOCS', None) == 'True'
-LOCAL_READ_THE_DOCS = os.environ.get('LOCAL_RTD', None) == 'True'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -57,10 +56,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-if ON_READ_THE_DOCS or LOCAL_READ_THE_DOCS:
-    templates_path = []
-else:
-    templates_path = ['_templates']
+templates_path = []
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -123,11 +119,9 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-if LOCAL_READ_THE_DOCS:
+if not ON_READ_THE_DOCS:
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-elif not ON_READ_THE_DOCS:
-    html_style = 'css/main.css'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -290,25 +284,13 @@ texinfo_documents = [
 # and parameter definitions from the __init__ docstring.
 autoclass_content = 'both'
 
-issue_uri = (
-    'https://github.com/GoogleCloudPlatform/google-cloud-python-happybase/'
-    'issues/new?' + urllib.urlencode({'title': '[Documentation Issue] '}))
-issue_uri_template = (
-    issue_uri + '&' + urllib.urlencode({'body': 'Page Name: '}) + '{0}' +
-    urllib.quote('\nRelease: ') + '{1}')
-
-html_context.update(
-    issue_uri=issue_uri,
-    issue_uri_template=issue_uri_template,
-)
-
 # Configuration for intersphinx:
 # Refer to the Python standard library and the oauth2client and
 # httplib2 libraries.
 intersphinx_mapping = {
-    'httplib2': ('http://bitworking.org/projects/httplib2/doc/html/', None),
-    'gcloud': ('http://gcloud.readthedocs.org/en/latest/', None),
-    'oauth2client': ('http://oauth2client.readthedocs.org/en/latest/', None),
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
-    'python': ('https://docs.python.org/', None),
+    'httplib2': ('http://httplib2.readthedocs.io/en/latest/', None),
+    'google-cloud-python': (
+        'https://google-cloud-python.readthedocs.io/en/latest/', None),
+    'oauth2client': ('http://oauth2client.readthedocs.io/en/latest', None),
+    'python': ('https://docs.python.org/2', None),
 }

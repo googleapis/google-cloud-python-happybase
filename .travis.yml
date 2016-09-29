@@ -8,6 +8,7 @@ script:
   - tox -e py27
   - tox -e py34
   - tox -e lint
+  - tox -e cover
   - tox -e system-tests
 
 after_success:

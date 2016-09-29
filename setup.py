@@ -26,6 +26,7 @@ with open(os.path.join(here, 'README.rst')) as f:
 
 REQUIREMENTS = [
     'gcloud',
+    'grpcio >= 1.0.0, < 2.0dev',
 ]
 
 setup(

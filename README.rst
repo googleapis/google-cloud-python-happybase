@@ -15,7 +15,9 @@ Google Cloud Python Happybase Client
 
 This client supports the following Google Cloud Platform services:
 
--  Happybase emulation for Google Cloud Bigtable.
+-  `Happybase`_ emulation for Google Cloud Bigtable.
+
+.. _Happybase: https://happybase.readthedocs.io/
 
 If you need support for other Google APIs, check out the
 `Google APIs Python Client library`_.

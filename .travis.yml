@@ -9,7 +9,6 @@ script:
   - tox -e py34
   - tox -e lint
   - tox -e cover
-  - tox -e system-tests
 
 after_success:
   - tox -e coveralls
@@ -24,8 +23,7 @@ deploy:
     repo: GoogleCloudPlatform/google-cloud-python-happybase
     # until this is fixed: https://github.com/travis-ci/travis-ci/issues/1675
     all_branches: true
-  # 'bdist_wheel' builds disabled until #1879 et al. are resolved.
-  distributions: "sdist"
+  distributions: "sdist bdist_wheel"
 
 cache:
   directories:

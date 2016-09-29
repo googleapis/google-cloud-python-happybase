@@ -1,7 +1,7 @@
 .. toctree::
   :maxdepth: 0
   :hidden:
-  :caption: Cloud Bigtable Happybase
+  :caption: Cloud Bigtable HappyBase
 
   HappyBase <happybase-package>
   happybase-connection

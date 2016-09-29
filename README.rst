@@ -1,7 +1,7 @@
-Google Cloud Python Happybase Client
+Google Cloud Python HappyBase Client
 ====================================
 
-    Python idiomatic client for `Google Cloud Platform`_ Happybase emulation.
+    Python idiomatic client for `Google Cloud Platform`_ HappyBase emulation.
 
 .. _Google Cloud Platform: https://cloud.google.com/
 
@@ -10,24 +10,24 @@ Google Cloud Python Happybase Client
 -  `Homepage`_
 -  `API Documentation`_
 
-.. _Homepage: https://googlecloudplatform.github.io/google-cloud-python-happybase/
-.. _API Documentation: http://googlecloudplatform.github.io/google-cloud-python-happybase/stable/
+.. _Homepage: https://googlecloudplatform.github.io/google-cloud-python/
+.. _API Documentation: https://googlecloudplatform.github.io/google-cloud-python/stable/
 
-This client supports the following Google Cloud Platform services:
-
--  Happybase emulation for Google Cloud Bigtable.
+This client is provided as a `HappyBase`_ emulation layer which uses
+Google Cloud Bigtable as the underlying storage layer.
 
 If you need support for other Google APIs, check out the
 `Google APIs Python Client library`_.
 
 .. _Google APIs Python Client library: https://github.com/google/google-api-python-client
+.. _HappyBase: https://happybase.readthedocs.io/en/latest/
 
 Quick Start
 -----------
 
 ::
 
-    $ pip install --upgrade google.cloud.happybase
+    $ pip install --upgrade google-cloud-happybase
 
 Authentication
 --------------
@@ -58,8 +58,8 @@ MIT - See `LICENSE`_ for more information.
 
 .. |build| image:: https://travis-ci.org/GoogleCloudPlatform/google-cloud-python-happybase.svg?branch=master
    :target: https://travis-ci.org/GoogleCloudPlatform/google-cloud-python-happybase
-.. |coverage| image:: https://codecov.io/gh/GoogleCloudPlatform/google-cloud-python-happybase/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/GoogleCloudPlatform/google-cloud-python-happybase
+.. |coverage| image:: https://coveralls.io/repos/GoogleCloudPlatform/google-cloud-python-happybase/badge.png?branch=master
+   :target: https://coveralls.io/r/GoogleCloudPlatform/google-cloud-python-happybase?branch=master
 .. |pypi| image:: https://img.shields.io/pypi/v/google-cloud-happybase.svg
    :target: https://pypi.python.org/pypi/google-cloud-python-happybase
 .. |versions| image:: https://img.shields.io/pypi/pyversions/google-cloud-happybase.svg

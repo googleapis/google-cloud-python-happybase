@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# google.cloud.happybase documentation build configuration file, created by
+# google-cloud-happybase documentation build configuration file, created by
 # sphinx-quickstart on Tue Jan 21 22:24:47 2014.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -68,7 +68,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'google.cloud.happybase'
+project = u'google-cloud-happybase'
 copyright = u'2014, Google'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -220,7 +220,7 @@ author = message_from_string(metadata).get('Author')
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
     ('index', 'google-cloud-happybase.tex',
-     u'google.cloud.happybase Documentation',
+     u'google-cloud-happybase Documentation',
      author, 'manual'),
 ]
 
@@ -251,7 +251,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'google-cloud-happybase',
-     u'google.cloud.happybase Documentation',
+     u'google-cloud-happybase Documentation',
      [author], 1)
 ]
 
@@ -266,8 +266,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'google-cloud-happybase',
-     u'google.cloud.happybase Documentation',
-     author, 'google-cloud-happybase', 'Python API for Google Cloud Happybase.',
+     u'google-cloud-happybase Documentation',
+     author, 'google-cloud-happybase', 'Python API for Google Cloud HappyBase.',
      'Miscellaneous'),
 ]
 

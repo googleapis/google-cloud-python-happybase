@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Custom script to run PyLint on google.cloud.happybase codebase.
+"""Custom script to run PyLint on google-cloud-happybase codebase.
 
 This runs pylint as a script via subprocess in two different
 subprocesses. The first lints the production/library code

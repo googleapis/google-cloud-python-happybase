@@ -44,20 +44,21 @@ SETUP_BASE = {
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet',
     ],
 }
 
 
 REQUIREMENTS = [
-    'google-cloud-bigtable >= 0.23.0, < 0.24dev',
+    'google-cloud-bigtable >= 0.24.0, < 0.25dev',
 ]
 
 SETUP_BASE.pop('url')
 
 setup(
     name='google-cloud-happybase',
-    version='0.23.0',
+    version='0.24.0',
     description='Client library for Google Cloud Bigtable: HappyBase layer',
     long_description=README,
     url='https://github.com/GoogleCloudPlatform/google-cloud-python-happybase',

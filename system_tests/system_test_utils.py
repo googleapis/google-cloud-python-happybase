@@ -64,6 +64,6 @@ def unique_resource_id(delimiter='_'):
     build_id = os.getenv('TRAVIS_BUILD_ID', '')
     if build_id == '':
         return '%s%d' % (delimiter, 1000 * time.time())
-    else:
-        return '%s%s%s%d' % (delimiter, build_id,
-                             delimiter, time.time())
+
+    return '%s%s%s%d' % (delimiter, build_id,
+                         delimiter, time.time())

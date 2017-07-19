@@ -284,17 +284,17 @@ class Table(object):
         partial_row_data = self._low_level_table.read_row(row, filter_=filter_)
         if partial_row_data is None:
             return []
-        else:
-            cells = partial_row_data._cells
-            # We know that `_filter_chain_helper` has already verified that
-            # column will split as such.
-            column_family_id, column_qualifier = column.split(':')
-            # NOTE: We expect the only key in `cells` is `column_family_id`
-            #       and the only key `cells[column_family_id]` is
-            #       `column_qualifier`. But we don't check that this is true.
-            curr_cells = cells[column_family_id][column_qualifier]
-            return _cells_to_pairs(
-                curr_cells, include_timestamp=include_timestamp)
+
+        cells = partial_row_data._cells
+        # We know that `_filter_chain_helper` has already verified that
+        # column will split as such.
+        column_family_id, column_qualifier = column.split(':')
+        # NOTE: We expect the only key in `cells` is `column_family_id`
+        #       and the only key `cells[column_family_id]` is
+        #       `column_qualifier`. But we don't check that this is true.
+        curr_cells = cells[column_family_id][column_qualifier]
+        return _cells_to_pairs(
+            curr_cells, include_timestamp=include_timestamp)
 
     def scan(self, row_start=None, row_stop=None, row_prefix=None,
              columns=None, timestamp=None,
@@ -374,6 +374,9 @@ class Table(object):
         :param kwargs: Remaining keyword arguments. Provided for HappyBase
                        compatibility.
 
+        :rtype: tuple
+        :returns: (Rather, yields) pairs of row key and the dictionary of
+                  values encountered in that row.
         :raises: If ``limit`` is set but non-positive, or if ``row_prefix`` is
                  used with row start/stop,
                  :class:`TypeError <exceptions.TypeError>` if a string

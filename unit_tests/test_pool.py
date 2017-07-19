@@ -236,8 +236,8 @@ class _Instance(object):
             result = self.copies[0]
             self.copies[:] = self.copies[1:]
             return result
-        else:
-            return self
+
+        return self
 
 
 class _Queue(object):

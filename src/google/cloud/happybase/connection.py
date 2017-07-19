@@ -87,12 +87,13 @@ def _get_instance(timeout=None):
     client = Client(**client_kwargs)
     instances, failed_locations = client.list_instances()
 
-    if len(failed_locations) != 0:
+    if failed_locations:
         raise ValueError('Determining instance via ListInstances encountered '
                          'failed locations.')
-    if len(instances) == 0:
+    num_instances = len(instances)
+    if num_instances == 0:
         raise ValueError('This client doesn\'t have access to any instances.')
-    if len(instances) > 1:
+    if num_instances > 1:
         raise ValueError('This client has access to more than one instance. '
                          'Please directly pass the instance you\'d '
                          'like to use.')

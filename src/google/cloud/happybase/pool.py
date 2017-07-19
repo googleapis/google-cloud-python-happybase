@@ -120,6 +120,8 @@ class ConnectionPool(object):
         :param timeout: (Optional) Time (in seconds) to wait for a connection
                         to open.
 
+        :rtype: :class:`~google.cloud.happybase.connection.Connection`
+        :returns: (Rather, yields) a connection from the queue.
         :raises: :class:`NoConnectionsAvailable` if no connection can be
                  retrieved from the pool before the ``timeout`` (only if
                  a timeout is specified).

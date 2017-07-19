@@ -635,8 +635,8 @@ class _Instance(object):
             result = self.copies[0]
             self.copies[:] = self.copies[1:]
             return result
-        else:
-            return self
+
+        return self
 
     def list_tables(self):
         return self.list_tables_result

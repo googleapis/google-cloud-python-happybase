@@ -7,11 +7,9 @@ Google Cloud Python HappyBase Client
 
 |pypi| |build| |coverage| |versions|
 
--  `Homepage`_
--  `API Documentation`_
+-  `Documentation`_
 
-.. _Homepage: https://googlecloudplatform.github.io/google-cloud-python/
-.. _API Documentation: https://googlecloudplatform.github.io/google-cloud-python/stable/
+.. _Documentation: http://google-cloud-python-happybase.readthedocs.io/
 
 This client is provided as a `HappyBase`_ emulation layer which uses
 Google Cloud Bigtable as the underlying storage layer.

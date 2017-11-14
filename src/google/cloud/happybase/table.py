@@ -591,7 +591,7 @@ class Table(object):
         # }
         modified_cells = row.commit()
         # Get the cells in the modified column,
-        column_cells = modified_cells[column_family_id][column_qualifier]
+        column_cells = modified_cells[column_family_id][column_qualifier.encode()]
         # Make sure there is exactly one cell in the column.
         if len(column_cells) != 1:
             raise ValueError('Expected server to return one modified cell.')

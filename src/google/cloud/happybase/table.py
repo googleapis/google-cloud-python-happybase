@@ -591,7 +591,22 @@ class Table(object):
         # }
         modified_cells = row.commit()
         # Get the cells in the modified column,
-        column_cells = modified_cells[column_family_id][column_qualifier]
+
+        if six.PY2:
+            column_cells = modified_cells[column_family_id][column_qualifier]
+
+        else:
+            inner_keys = list(six.iterkeys(modified_cells[column_family_id]))
+
+            if isinstance(inner_keys[0], six.binary_type):
+                column_cells = modified_cells[column_family_id][six.b(column_qualifier)]
+
+            elif isinstance(inner_keys[0], six.string_types):
+                column_cells = modified_cells[column_family_id][six.u(column_qualifier)]
+
+            else:
+                raise KeyError(column_qualifier)
+
         # Make sure there is exactly one cell in the column.
         if len(column_cells) != 1:
             raise ValueError('Expected server to return one modified cell.')

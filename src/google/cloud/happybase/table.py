@@ -597,14 +597,16 @@ class Table(object):
 
         else:
             inner_keys = list(six.iterkeys(modified_cells[column_family_id]))
-            if len(inner_keys) == 0:
+            if inner_keys:
                 raise KeyError(column_qualifier)
 
             if isinstance(inner_keys[0], six.binary_type):
-                column_cells = modified_cells[column_family_id][six.b(column_qualifier)]
+                column_cells = modified_cells[
+                    column_family_id][six.b(column_qualifier)]
 
             elif isinstance(inner_keys[0], six.string_types):
-                column_cells = modified_cells[column_family_id][six.u(column_qualifier)]
+                column_cells = modified_cells[
+                    column_family_id][six.u(column_qualifier)]
 
             else:
                 raise KeyError(column_qualifier)

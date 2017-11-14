@@ -597,7 +597,7 @@ class Table(object):
 
         else:
             inner_keys = list(six.iterkeys(modified_cells[column_family_id]))
-            if inner_keys:
+            if not inner_keys:
                 raise KeyError(column_qualifier)
 
             if isinstance(inner_keys[0], six.binary_type):

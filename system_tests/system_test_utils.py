@@ -17,10 +17,9 @@ import os
 import sys
 import time
 
-from google.cloud.environment_vars import CREDENTIALS as TEST_CREDENTIALS
-
 
 # From shell environ. May be None.
+TEST_CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
 CREDENTIALS = os.getenv(TEST_CREDENTIALS)
 
 ENVIRON_ERROR_MSG = """\

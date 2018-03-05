@@ -21,7 +21,6 @@ import unittest
 from google.cloud.bigtable import client as client_mod
 from google.cloud.happybase.connection import Connection
 
-from retry import RetryResult
 from system_test_utils import unique_resource_id
 
 
@@ -30,8 +29,8 @@ _FIRST_ELT = operator.itemgetter(0)
 LOCATION_ID = 'us-central1-c'
 # NOTE: Avoid using the same name as in bigtable.py
 INSTANCE_ID = 'gcl-hb' + unique_resource_id('-')
-TABLE_NAME = 'table-name'
-ALT_TABLE_NAME = 'other-table'
+TABLE_NAME = 'table-name2'
+ALT_TABLE_NAME = 'other-table2'
 TTL_FOR_TEST = 3
 COL_FAM1 = 'cf1'
 COL_FAM2 = 'cf2'
@@ -82,8 +81,7 @@ def _wait_until_complete(operation, max_attempts=5):
     :rtype: bool
     :returns: Boolean indicating if the operation is complete.
     """
-    retry = RetryResult(_operation_complete, max_tries=max_attempts)
-    return retry(operation.poll)()
+    return operation.result()
 
 
 def set_connection():
@@ -463,8 +461,8 @@ class TestTable_scan(BaseTableTest):
 
     def test_scan_single_row(self):
         table = Config.TABLE
-        value1 = 'value1'
-        value2 = 'value2'
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -555,12 +553,12 @@ class TestTable_scan(BaseTableTest):
 
     def test_scan_timestamp(self):
         table = Config.TABLE
-        value1 = 'value1'
-        value2 = 'value2'
-        value3 = 'value3'
-        value4 = 'value4'
-        value5 = 'value5'
-        value6 = 'value6'
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
+        value4 = b'value4'
+        value5 = b'value5'
+        value6 = b'value6'
 
         # Need to clean-up row1/2/3 after.
         self.rows_to_delete.append(ROW_KEY1)

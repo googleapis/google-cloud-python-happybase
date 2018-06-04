@@ -51,14 +51,14 @@ SETUP_BASE = {
 
 
 REQUIREMENTS = [
-    'google-cloud-bigtable >= 0.29.0',
+    'google-cloud-bigtable >= 0.29.0, < 0.30dev',
 ]
 
 SETUP_BASE.pop('url')
 
 setup(
     name='google-cloud-happybase',
-    version='0.29.0',
+    version='0.26.0',
     description='Client library for Google Cloud Bigtable: HappyBase layer',
     long_description=README,
     url='https://github.com/GoogleCloudPlatform/google-cloud-python-happybase',

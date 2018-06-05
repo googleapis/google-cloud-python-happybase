@@ -51,7 +51,7 @@ SETUP_BASE = {
 
 
 REQUIREMENTS = [
-    'google-cloud-bigtable >= 0.26.0, < 0.27dev',
+    'google-cloud-bigtable >= 0.29.0, < 0.30dev',
 ]
 
 SETUP_BASE.pop('url')

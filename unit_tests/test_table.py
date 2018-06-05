@@ -1163,26 +1163,25 @@ class Test__cells_to_pairs(unittest.TestCase):
         from google.cloud.bigtable.row_data import Cell
 
         value1 = 'foo'
-        cell1 = Cell(value=value1, timestamp=None)
+        cell1 = Cell(value=value1, timestamp_micros=None)
         value2 = 'bar'
-        cell2 = Cell(value=value2, timestamp=None)
+        cell2 = Cell(value=value2, timestamp_micros=None)
 
         result = self._callFUT([cell1, cell2])
         self.assertEqual(result, [value1, value2])
 
     def test_with_timestamp(self):
-        from google.cloud._helpers import _datetime_from_microseconds
         from google.cloud.bigtable.row_data import Cell
 
         value1 = 'foo'
         ts1_millis = 1221934570148
-        ts1 = _datetime_from_microseconds(ts1_millis * 1000)
-        cell1 = Cell(value=value1, timestamp=ts1)
+        ts1 = ts1_millis * 1000
+        cell1 = Cell(value=value1, timestamp_micros=ts1)
 
         value2 = 'bar'
         ts2_millis = 1221955575548
-        ts2 = _datetime_from_microseconds(ts2_millis * 1000)
-        cell2 = Cell(value=value2, timestamp=ts2)
+        ts2 = ts2_millis * 1000
+        cell2 = Cell(value=value2, timestamp_micros=ts2)
 
         result = self._callFUT([cell1, cell2], include_timestamp=True)
         self.assertEqual(result,
@@ -1215,17 +1214,16 @@ class Test__partial_row_to_dict(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_with_timestamp(self):
-        from google.cloud._helpers import _datetime_from_microseconds
         from google.cloud.bigtable.row_data import Cell
         from google.cloud.bigtable.row_data import PartialRowData
 
         row_data = PartialRowData(b'row-key')
         val1 = b'hi-im-bytes'
         ts1_millis = 1221934570148
-        ts1 = _datetime_from_microseconds(ts1_millis * 1000)
+        ts1 = ts1_millis * 1000
         val2 = b'bi-im-hytes'
         ts2_millis = 1331934880000
-        ts2 = _datetime_from_microseconds(ts2_millis * 1000)
+        ts2 = ts2_millis * 1000
         row_data._cells[u'fam1'] = {
             b'col1': [Cell(val1, ts1)],
             b'col2': [Cell(val2, ts2)],

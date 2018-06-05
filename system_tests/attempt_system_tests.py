@@ -52,8 +52,6 @@ import os
 import subprocess
 import sys
 
-from google.cloud.environment_vars import CREDENTIALS
-
 from run_system_test import FailedSystemTestModule
 from run_system_test import run_module_tests
 
@@ -62,6 +60,7 @@ MODULES = (
     'happybase',
 )
 
+CREDENTIALS = 'GOOGLE_APPLICATION_CREDENTIALS'
 SCRIPTS_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(SCRIPTS_DIR, '..'))
 ENCRYPTED_KEYFILE = os.path.join(ROOT_DIR, 'system_tests', 'key.json.enc')

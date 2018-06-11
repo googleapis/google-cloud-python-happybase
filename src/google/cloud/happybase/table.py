@@ -236,19 +236,18 @@ class Table(object):
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)
 
-        partial_rows_data = self._low_level_table.read_rows(filter_=filter_)
+        partial_rows_data = self._low_level_table.yield_rows(filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure
         #       that the stream isn't open too long.
-        partial_rows_data.consume_all()
 
         result = []
-        for row_key in rows:
-            if row_key not in partial_rows_data.rows:
+        for partial_rowdata in partial_rows_data:
+            if partial_rowdata.row_key not in rows:
                 continue
-            curr_row_data = partial_rows_data.rows[row_key]
+            curr_row_data = partial_rowdata
             curr_row_dict = _partial_row_to_dict(
                 curr_row_data, include_timestamp=include_timestamp)
-            result.append((row_key, curr_row_dict))
+            result.append((partial_rowdata.row_key, curr_row_dict))
 
         return result
 
@@ -385,23 +384,16 @@ class Table(object):
         row_start, row_stop, filter_chain = _scan_filter_helper(
             row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs)
 
-        partial_rows_data = self._low_level_table.read_rows(
+        partial_rows_data = self._low_level_table.yield_rows(
             start_key=row_start, end_key=row_stop,
             limit=limit, filter_=filter_chain)
 
-        # Mutable copy of data.
-        rows_dict = partial_rows_data.rows
-        while True:
-            try:
-                partial_rows_data.consume_next()
-                for row_key in sorted(rows_dict):
-                    curr_row_data = rows_dict.pop(row_key)
-                    # NOTE: We expect len(rows_dict) == 0, but don't check it.
-                    curr_row_dict = _partial_row_to_dict(
-                        curr_row_data, include_timestamp=include_timestamp)
-                    yield (row_key, curr_row_dict)
-            except StopIteration:
-                break
+        for partial_rowdata in partial_rows_data:
+            curr_row_data = partial_rowdata
+            # NOTE: We expect len(rows_dict) == 0, but don't check it.
+            curr_row_dict = _partial_row_to_dict(
+                curr_row_data, include_timestamp=include_timestamp)
+            yield (curr_row_data.row_key, curr_row_dict)
 
     def put(self, row, data, timestamp=None, wal=_WAL_SENTINEL):
         """Insert data into a row in this table.

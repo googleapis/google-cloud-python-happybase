@@ -1472,9 +1472,18 @@ class _MockLowLevelTable(object):
         self.read_row_calls.append((args, kwargs))
         return self.read_row_result
 
-    def read_rows(self, *args, **kwargs):
+    def yield_rows(self, *args, **kwargs):
         self.read_rows_calls.append((args, kwargs))
-        return self.read_rows_result
+        self.read_rows_result.consume_all()
+        rows_dict = self.read_rows_result.rows
+        while True:
+            try:
+                for row_key in sorted(rows_dict):
+                    curr_row_data = rows_dict.pop(row_key)
+                    yield curr_row_data
+                self.read_rows_result.consume_next()
+            except StopIteration:
+                break
 
 
 class _MockLowLevelRow(object):

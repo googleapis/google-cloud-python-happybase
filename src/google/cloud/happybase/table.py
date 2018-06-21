@@ -236,18 +236,23 @@ class Table(object):
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)
 
-        partial_rows_data = self._low_level_table.yield_rows(filter_=filter_)
+        partial_rows_generator = self._low_level_table.yield_rows(filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure
         #       that the stream isn't open too long.
 
         result = []
-        for partial_rowdata in partial_rows_data:
-            if partial_rowdata.row_key not in rows:
+        partial_result = {}
+        for partial_rowdata in partial_rows_generator:
+            partial_result[partial_rowdata.row_key] = partial_rowdata
+
+        for row_key in rows:
+            if row_key not in partial_result:
                 continue
-            curr_row_data = partial_rowdata
+            curr_row_data = partial_result[row_key]
             curr_row_dict = _partial_row_to_dict(
                 curr_row_data, include_timestamp=include_timestamp)
-            result.append((partial_rowdata.row_key, curr_row_dict))
+            result.append((row_key, curr_row_dict))
+
 
         return result
 
@@ -384,16 +389,17 @@ class Table(object):
         row_start, row_stop, filter_chain = _scan_filter_helper(
             row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs)
 
-        partial_rows_data = self._low_level_table.yield_rows(
+        partial_rows_generator = self._low_level_table.yield_rows(
             start_key=row_start, end_key=row_stop,
             limit=limit, filter_=filter_chain)
 
-        for partial_rowdata in partial_rows_data:
+        for partial_rowdata in partial_rows_generator:
             curr_row_data = partial_rowdata
             # NOTE: We expect len(rows_dict) == 0, but don't check it.
             curr_row_dict = _partial_row_to_dict(
                 curr_row_data, include_timestamp=include_timestamp)
             yield (curr_row_data.row_key, curr_row_dict)
+
 
     def put(self, row, data, timestamp=None, wal=_WAL_SENTINEL):
         """Insert data into a row in this table.

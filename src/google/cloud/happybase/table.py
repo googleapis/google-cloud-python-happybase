@@ -235,7 +235,6 @@ class Table(object):
         # versions == 1 since we only want the latest.
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)
-
         partial_rows_generator = self._low_level_table.yield_rows(
             filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure

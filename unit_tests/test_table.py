@@ -283,7 +283,6 @@ class TestTable(unittest.TestCase):
         table._low_level_table = _MockLowLevelTable()
         rr_result = _MockPartialRowsData()
         table._low_level_table.read_rows_result = rr_result
-        self.assertEqual(rr_result.consume_all_calls, 0)
 
         # Set-up mocks.
         fake_col_filter = object()
@@ -322,7 +321,6 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
-        self.assertEqual(rr_result.consume_all_calls, 1)
 
         self.assertEqual(mock_cols, [(columns,)])
         self.assertEqual(mock_rows, [(rows,)])
@@ -350,7 +348,6 @@ class TestTable(unittest.TestCase):
         # Return row1 but not row2
         rr_result = _MockPartialRowsData(rows={row_key1: row1})
         table._low_level_table.read_rows_result = rr_result
-        self.assertEqual(rr_result.consume_all_calls, 0)
 
         # Set-up mocks.
         fake_rows_filter = object()
@@ -393,7 +390,6 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
-        self.assertEqual(rr_result.consume_all_calls, 1)
 
         self.assertEqual(mock_rows, [(rows,)])
         expected_kwargs = {
@@ -649,8 +645,6 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
-        self.assertEqual(rr_result.consume_next_calls,
-                         rr_result.iterations + 1)
 
         if columns is not None:
             self.assertEqual(mock_columns, [(columns,)])
@@ -1476,15 +1470,9 @@ class _MockLowLevelTable(object):
         self.read_rows_calls.append((args, kwargs))
         self.read_rows_result.consume_all()
         rows_dict = self.read_rows_result.rows
-        while True:
-            try:
-                for row_key in sorted(rows_dict):
-                    curr_row_data = rows_dict.pop(row_key)
-                    yield curr_row_data
-                self.read_rows_result.consume_next()
-            except StopIteration:
-                break
-
+        for row_key in sorted(rows_dict):
+            curr_row_data = rows_dict.pop(row_key)
+            yield curr_row_data
 
 class _MockLowLevelRow(object):
 
@@ -1537,8 +1525,3 @@ class _MockPartialRowsData(object):
 
     def consume_all(self):
         self.consume_all_calls += 1
-
-    def consume_next(self):
-        self.consume_next_calls += 1
-        if self.consume_next_calls > self.iterations:
-            raise StopIteration

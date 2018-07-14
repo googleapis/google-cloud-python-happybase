@@ -1474,6 +1474,7 @@ class _MockLowLevelTable(object):
             curr_row_data = rows_dict.pop(row_key)
             yield curr_row_data
 
+
 class _MockLowLevelRow(object):
 
     COUNTER_DEFAULT = 0

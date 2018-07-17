@@ -1468,7 +1468,6 @@ class _MockLowLevelTable(object):
 
     def yield_rows(self, *args, **kwargs):
         self.read_rows_calls.append((args, kwargs))
-        self.read_rows_result.consume_all()
         rows_dict = self.read_rows_result.rows
         for row_key in sorted(rows_dict):
             curr_row_data = rows_dict.pop(row_key)
@@ -1523,6 +1522,3 @@ class _MockPartialRowsData(object):
         self.consume_all_calls = 0
         self.consume_next_calls = 0
         self.iterations = iterations
-
-    def consume_all(self):
-        self.consume_all_calls += 1

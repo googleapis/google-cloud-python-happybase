@@ -975,6 +975,8 @@ def _row_keys_filter_helper(row_keys):
     
 
 def _get_row_set_object(row_start, row_stop):
-        row_set = RowSet()
-        row_set.add_row_range(RowRange(row_start, row_stop))
-        return row_set
+    """Return a RowSet object for the given row_start and row_stop
+    """ 
+    row_set = RowSet()
+    row_set.add_row_range(RowRange(row_start, row_stop))
+    return row_set

@@ -645,15 +645,6 @@ class TestTable(unittest.TestCase):
         if row_prefix:
             row_start = row_prefix
             row_stop = MUT._string_successor(row_prefix)
-        """
-        read_rows_kwargs = {
-            'end_key': row_stop,
-            'filter_': fake_filter,
-            'limit': limit,
-            'start_key': row_start,
-        }
-        """
-        
         
         read_rows_kwargs = {
             'row_set': row_set,

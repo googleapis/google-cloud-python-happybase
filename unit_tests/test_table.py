@@ -594,6 +594,8 @@ class TestTable(unittest.TestCase):
         import types
         from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
+        from google.cloud.bigtable.row_set import RowSet
+        from google.cloud.bigtable.row_set import RowRange
 
         name = 'table-name'
         row_start, row_stop = row_limits
@@ -618,9 +620,16 @@ class TestTable(unittest.TestCase):
         def mock_filter_chain_helper(**kwargs):
             mock_filters.append(kwargs)
             return fake_filter
-
+        
+        row_set = RowSet()
+        row_set.add_row_range(RowRange(row_start, row_stop))
+        
+        def mock_get_row_set_object(*args):
+            return row_set
+          
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _columns_filter_helper=mock_columns_filter_helper):
+                     _columns_filter_helper=mock_columns_filter_helper,
+                     _get_row_set_object=mock_get_row_set_object):
             result = table.scan(row_start=row_start, row_stop=row_stop,
                                 row_prefix=row_prefix, columns=columns,
                                 filter=filter_, timestamp=timestamp,
@@ -636,12 +645,22 @@ class TestTable(unittest.TestCase):
         if row_prefix:
             row_start = row_prefix
             row_stop = MUT._string_successor(row_prefix)
+        """
         read_rows_kwargs = {
             'end_key': row_stop,
             'filter_': fake_filter,
             'limit': limit,
             'start_key': row_start,
         }
+        """
+        
+        
+        read_rows_kwargs = {
+            'row_set': row_set,
+            'filter_': fake_filter,
+            'limit': limit,
+        }
+        
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
@@ -1466,7 +1485,7 @@ class _MockLowLevelTable(object):
         self.read_row_calls.append((args, kwargs))
         return self.read_row_result
 
-    def yield_rows(self, *args, **kwargs):
+    def read_rows(self, *args, **kwargs):
         self.read_rows_calls.append((args, kwargs))
         rows_dict = self.read_rows_result.rows
         for row_key in sorted(rows_dict):

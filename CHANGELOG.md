@@ -5,11 +5,11 @@
 [1]: https://pypi.org/project/google-cloud-happybase/#history
 
 
-## 0.30.1
+## 0.30.2
 
 ### Dependencies
 
-- Update to use `google.cloud.bigtable 0.30.1`
+- Update to use `google.cloud.bigtable 0.30.2`
 
 ### Documentation
 

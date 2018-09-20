@@ -621,7 +621,7 @@ class TestTable(unittest.TestCase):
 
         fake_row_set = object()
 
-        def mock_get_row_set_object(*args):  #pylint: disable=unused-argument
+        def mock_get_row_set_object(*args):  # pylint: disable=unused-argument
             return fake_row_set
 
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,

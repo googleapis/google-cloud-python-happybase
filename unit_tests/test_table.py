@@ -594,8 +594,6 @@ class TestTable(unittest.TestCase):
         import types
         from google.cloud._testing import _Monkey
         from google.cloud.happybase import table as MUT
-        from google.cloud.bigtable.row_set import RowSet
-        from google.cloud.bigtable.row_set import RowRange
 
         name = 'table-name'
         row_start, row_stop = row_limits
@@ -624,6 +622,7 @@ class TestTable(unittest.TestCase):
         fake_row_set = object()
 
         def mock_get_row_set_object(*args):
+            #pylint: disable=unused-argument
             return fake_row_set
 
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,

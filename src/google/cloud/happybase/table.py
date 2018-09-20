@@ -382,9 +382,9 @@ class Table(object):
         """
         row_start, row_stop, filter_chain = _scan_filter_helper(
             row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs)
-        
+
         row_set = _get_row_set_object(row_start, row_stop)
-        
+
         rows_generator = self._low_level_table.read_rows(
             row_set=row_set, limit=limit, filter_=filter_chain)
 
@@ -972,11 +972,11 @@ def _row_keys_filter_helper(row_keys):
         return filters[0]
     else:
         return RowFilterUnion(filters=filters)
-    
+
 
 def _get_row_set_object(row_start, row_stop):
     """Return a RowSet object for the given row_start and row_stop
-    """ 
+    """
     row_set = RowSet()
     row_set.add_row_range(RowRange(row_start, row_stop))
     return row_set

@@ -620,13 +620,12 @@ class TestTable(unittest.TestCase):
         def mock_filter_chain_helper(**kwargs):
             mock_filters.append(kwargs)
             return fake_filter
-        
-        row_set = RowSet()
-        row_set.add_row_range(RowRange(row_start, row_stop))
-        
+
+        fake_row_set = object()
+
         def mock_get_row_set_object(*args):
-            return row_set
-          
+            return fake_row_set
+
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
                      _columns_filter_helper=mock_columns_filter_helper,
                      _get_row_set_object=mock_get_row_set_object):
@@ -645,13 +644,13 @@ class TestTable(unittest.TestCase):
         if row_prefix:
             row_start = row_prefix
             row_stop = MUT._string_successor(row_prefix)
-        
+
         read_rows_kwargs = {
-            'row_set': row_set,
+            'row_set': fake_row_set,
             'filter_': fake_filter,
             'limit': limit,
         }
-        
+
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
@@ -1435,6 +1434,22 @@ class Test__row_keys_filter_helper(unittest.TestCase):
         filter3 = RowKeyRegexFilter(row_key3)
         expected_result = RowFilterUnion(filters=[filter1, filter2, filter3])
         self.assertEqual(result, expected_result)
+
+
+class Test___get_row_set_object(unittest.TestCase):
+
+    def _callFUT(self, *args, **kwargs):
+        from google.cloud.happybase.table import _get_row_set_object
+        return _get_row_set_object(*args, **kwargs)
+
+    def test_row_set_object(self):
+        from google.cloud.bigtable.row_set import RowSet
+
+        start_key = b"row_key2"
+        end_key = b"row_key9"
+
+        row_set = self._callFUT(start_key, end_key)
+        self.assertIsInstance(row_set, RowSet)
 
 
 class _Connection(object):

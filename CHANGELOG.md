@@ -18,6 +18,7 @@
 ### Implementation changes
 
 - Use Bigtable's `yield_rows` for `Table.rows()` and `Table.scan()`. (#37)
+- Update scan method to use row set (#42)
 
 
 ## 0.26.0

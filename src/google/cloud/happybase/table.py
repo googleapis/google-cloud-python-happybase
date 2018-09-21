@@ -35,6 +35,7 @@ from google.cloud.bigtable.row_filters import RowKeyRegexFilter
 from google.cloud.bigtable.row_filters import TimestampRange
 from google.cloud.bigtable.row_filters import TimestampRangeFilter
 from google.cloud.bigtable.table import Table as _LowLevelTable
+from google.cloud.bigtable.row_set import RowSet
 
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL
@@ -235,7 +236,7 @@ class Table(object):
         # versions == 1 since we only want the latest.
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)
-        rows_generator = self._low_level_table.yield_rows(
+        rows_generator = self._low_level_table.read_rows(
             filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure
         #       that the stream isn't open too long.
@@ -381,9 +382,10 @@ class Table(object):
         row_start, row_stop, filter_chain = _scan_filter_helper(
             row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs)
 
-        rows_generator = self._low_level_table.yield_rows(
-            start_key=row_start, end_key=row_stop,
-            limit=limit, filter_=filter_chain)
+        row_set = _get_row_set_object(row_start, row_stop)
+
+        rows_generator = self._low_level_table.read_rows(
+            row_set=row_set, limit=limit, filter_=filter_chain)
 
         for rowdata in rows_generator:
             curr_row_data = rowdata
@@ -969,3 +971,12 @@ def _row_keys_filter_helper(row_keys):
         return filters[0]
     else:
         return RowFilterUnion(filters=filters)
+
+
+def _get_row_set_object(row_start, row_stop):
+    """Return a RowSet object for the given row_start and row_stop
+    """
+    row_set = RowSet()
+    row_set.add_row_range_from_keys(start_key=row_start,
+                                    end_key=row_stop)
+    return row_set

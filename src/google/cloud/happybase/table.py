@@ -978,5 +978,6 @@ def _get_row_set_object(row_start, row_stop):
     """Return a RowSet object for the given row_start and row_stop
     """
     row_set = RowSet()
-    row_set.add_row_range(RowRange(row_start, row_stop))
+    row_set.add_row_range_from_keys(start_key=row_start,
+                                    end_key=row_stop)
     return row_set

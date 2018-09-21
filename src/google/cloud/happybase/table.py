@@ -36,7 +36,6 @@ from google.cloud.bigtable.row_filters import TimestampRange
 from google.cloud.bigtable.row_filters import TimestampRangeFilter
 from google.cloud.bigtable.table import Table as _LowLevelTable
 from google.cloud.bigtable.row_set import RowSet
-from google.cloud.bigtable.row_set import RowRange
 
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL

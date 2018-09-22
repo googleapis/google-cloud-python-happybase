@@ -309,7 +309,7 @@ class TestTable(unittest.TestCase):
         columns = object()
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
                      _columns_filter_helper=mock_columns_filter_helper,
-                     _get_row_set_from_row_keys=\
+                     _get_row_set_from_row_keys=
                      mock_get_row_set_from_row_keys):
             result = table.rows(rows, columns=columns)
 
@@ -317,7 +317,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, [])
 
         read_rows_args = ()
-        read_rows_kwargs = {'row_set':fake_row_set,
+        read_rows_kwargs = {'row_set': fake_row_set,
                             'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
@@ -376,7 +376,7 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         row1._cells = {col_fam: {qual: fake_cells}}
         include_timestamp = object()
-        with _Monkey(MUT, _get_row_set_from_row_keys=\
+        with _Monkey(MUT, _get_row_set_from_row_keys=
                      mock_get_row_set_from_row_keys,
                      _filter_chain_helper=mock_filter_chain_helper,
                      _cells_to_pairs=mock_cells_to_pairs):
@@ -387,7 +387,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, [(row_key1, expected_result)])
 
         read_rows_args = ()
-        read_rows_kwargs = {'row_set':fake_row_set,
+        read_rows_kwargs = {'row_set': fake_row_set,
                             'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
@@ -1428,6 +1428,7 @@ class Test___get_row_set_from_row_keys(unittest.TestCase):
         row_set = self._callFUT(rows)
         self.assertIsInstance(row_set, RowSet)
         self.assertEqual(rows, row_set.row_keys)
+
 
 class _Connection(object):
 

@@ -233,7 +233,7 @@ class Table(object):
         if columns is not None:
             filters.append(_columns_filter_helper(columns))
 
-        row_set = _get_row_set_from_row_keys(rows)
+        row_set = _get_row_set_from_rows(rows)
 
         #filters.append(_row_keys_filter_helper(rows))
         # versions == 1 since we only want the latest.
@@ -961,7 +961,8 @@ def _get_row_set_object(row_start, row_stop):
                                     end_key=row_stop)
     return row_set
 
-def _get_row_set_from_row_keys(rows):
+
+def _get_row_set_from_rows(rows):
     """Return a RowSet object for the given rows
     """
     row_set = RowSet()

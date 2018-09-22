@@ -294,7 +294,7 @@ class TestTable(unittest.TestCase):
 
         fake_row_set = object()
 
-        def mock_get_row_set_from_row_keys(
+        def mock_get_row_set_from_rows(
                 *args):  # pylint: disable=unused-argument
             return fake_row_set
 
@@ -309,8 +309,7 @@ class TestTable(unittest.TestCase):
         columns = object()
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
                      _columns_filter_helper=mock_columns_filter_helper,
-                     _get_row_set_from_row_keys=
-                     mock_get_row_set_from_row_keys):
+                     _get_row_set_from_rows=mock_get_row_set_from_rows):
             result = table.rows(rows, columns=columns)
 
         # read_rows_result == Empty PartialRowsData --> No results.
@@ -353,7 +352,7 @@ class TestTable(unittest.TestCase):
         # Set-up mocks.
         fake_row_set = object()
 
-        def mock_get_row_set_from_row_keys(
+        def mock_get_row_set_from_rows(
                 *args):  # pylint: disable=unused-argument
             return fake_row_set
 
@@ -376,8 +375,7 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         row1._cells = {col_fam: {qual: fake_cells}}
         include_timestamp = object()
-        with _Monkey(MUT, _get_row_set_from_row_keys=
-                     mock_get_row_set_from_row_keys,
+        with _Monkey(MUT, _get_row_set_from_rows=mock_get_row_set_from_rows,
                      _filter_chain_helper=mock_filter_chain_helper,
                      _cells_to_pairs=mock_cells_to_pairs):
             result = table.rows(rows, include_timestamp=include_timestamp)
@@ -1414,11 +1412,11 @@ class Test___get_row_set_object(unittest.TestCase):
         self.assertIsInstance(row_set, RowSet)
 
 
-class Test___get_row_set_from_row_keys(unittest.TestCase):
+class Test___get_row_set_from_rows(unittest.TestCase):
 
     def _callFUT(self, *args, **kwargs):
-        from google.cloud.happybase.table import _get_row_set_from_row_keys
-        return _get_row_set_from_row_keys(*args, **kwargs)
+        from google.cloud.happybase.table import _get_row_set_from_rows
+        return _get_row_set_from_rows(*args, **kwargs)
 
     def test_row_set_object(self):
         from google.cloud.bigtable.row_set import RowSet

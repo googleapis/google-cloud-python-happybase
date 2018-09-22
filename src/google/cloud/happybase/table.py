@@ -232,11 +232,15 @@ class Table(object):
         filters = []
         if columns is not None:
             filters.append(_columns_filter_helper(columns))
-        filters.append(_row_keys_filter_helper(rows))
+
+        row_set = _get_row_set_from_row_keys(rows)
+
+        #filters.append(_row_keys_filter_helper(rows))
         # versions == 1 since we only want the latest.
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)
         rows_generator = self._low_level_table.read_rows(
+            row_set=row_set,
             filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure
         #       that the stream isn't open too long.
@@ -949,34 +953,18 @@ def _columns_filter_helper(columns):
         return RowFilterUnion(filters=filters)
 
 
-def _row_keys_filter_helper(row_keys):
-    """Creates a union filter for a list of rows.
-
-    :type row_keys: list
-    :param row_keys: Iterable containing row keys (as strings).
-
-    :rtype: :class:`~google.cloud.bigtable.row.RowFilter`
-    :returns: The union filter created containing all of the row keys.
-    :raises: :class:`ValueError <exceptions.ValueError>` if there are no
-             filters to union.
-    """
-    filters = []
-    for row_key in row_keys:
-        filters.append(RowKeyRegexFilter(row_key))
-
-    num_filters = len(filters)
-    if num_filters == 0:
-        raise ValueError('Must have at least one filter.')
-    elif num_filters == 1:
-        return filters[0]
-    else:
-        return RowFilterUnion(filters=filters)
-
-
 def _get_row_set_object(row_start, row_stop):
     """Return a RowSet object for the given row_start and row_stop
     """
     row_set = RowSet()
     row_set.add_row_range_from_keys(start_key=row_start,
                                     end_key=row_stop)
+    return row_set
+
+def _get_row_set_from_row_keys(rows):
+    """Return a RowSet object for the given rows
+    """
+    row_set = RowSet()
+    for row_key in rows:
+        row_set.add_row_key(row_key)
     return row_set

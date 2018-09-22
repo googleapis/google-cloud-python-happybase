@@ -31,7 +31,6 @@ from google.cloud.bigtable.row_filters import ColumnQualifierRegexFilter
 from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
 from google.cloud.bigtable.row_filters import RowFilterChain
 from google.cloud.bigtable.row_filters import RowFilterUnion
-from google.cloud.bigtable.row_filters import RowKeyRegexFilter
 from google.cloud.bigtable.row_filters import TimestampRange
 from google.cloud.bigtable.row_filters import TimestampRangeFilter
 from google.cloud.bigtable.table import Table as _LowLevelTable

@@ -234,8 +234,6 @@ class Table(object):
             filters.append(_columns_filter_helper(columns))
 
         row_set = _get_row_set_from_rows(rows)
-
-        #filters.append(_row_keys_filter_helper(rows))
         # versions == 1 since we only want the latest.
         filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
                                        filters=filters)

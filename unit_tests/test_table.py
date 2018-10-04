@@ -292,12 +292,11 @@ class TestTable(unittest.TestCase):
             mock_cols.append(args)
             return fake_col_filter
 
-        fake_rows_filter = object()
-        mock_rows = []
+        fake_row_set = object()
 
-        def mock_row_keys_filter_helper(*args):
-            mock_rows.append(args)
-            return fake_rows_filter
+        def mock_get_row_set_from_rows(
+                *args):  # pylint: disable=unused-argument
+            return fake_row_set
 
         fake_filter = object()
         mock_filters = []
@@ -309,23 +308,24 @@ class TestTable(unittest.TestCase):
         rows = ['row-key']
         columns = object()
         with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _row_keys_filter_helper=mock_row_keys_filter_helper,
-                     _columns_filter_helper=mock_columns_filter_helper):
+                     _columns_filter_helper=mock_columns_filter_helper,
+                     _get_row_set_from_rows=mock_get_row_set_from_rows):
             result = table.rows(rows, columns=columns)
 
         # read_rows_result == Empty PartialRowsData --> No results.
         self.assertEqual(result, [])
 
         read_rows_args = ()
-        read_rows_kwargs = {'filter_': fake_filter}
+        read_rows_kwargs = {'row_set': fake_row_set,
+                            'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
 
         self.assertEqual(mock_cols, [(columns,)])
-        self.assertEqual(mock_rows, [(rows,)])
+
         expected_kwargs = {
-            'filters': [fake_col_filter, fake_rows_filter],
+            'filters': [fake_col_filter],
             'versions': 1,
             'timestamp': None,
         }
@@ -350,12 +350,11 @@ class TestTable(unittest.TestCase):
         table._low_level_table.read_rows_result = rr_result
 
         # Set-up mocks.
-        fake_rows_filter = object()
-        mock_rows = []
+        fake_row_set = object()
 
-        def mock_row_keys_filter_helper(*args):
-            mock_rows.append(args)
-            return fake_rows_filter
+        def mock_get_row_set_from_rows(
+                *args):  # pylint: disable=unused-argument
+            return fake_row_set
 
         fake_filter = object()
         mock_filters = []
@@ -376,7 +375,7 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         row1._cells = {col_fam: {qual: fake_cells}}
         include_timestamp = object()
-        with _Monkey(MUT, _row_keys_filter_helper=mock_row_keys_filter_helper,
+        with _Monkey(MUT, _get_row_set_from_rows=mock_get_row_set_from_rows,
                      _filter_chain_helper=mock_filter_chain_helper,
                      _cells_to_pairs=mock_cells_to_pairs):
             result = table.rows(rows, include_timestamp=include_timestamp)
@@ -386,14 +385,14 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, [(row_key1, expected_result)])
 
         read_rows_args = ()
-        read_rows_kwargs = {'filter_': fake_filter}
+        read_rows_kwargs = {'row_set': fake_row_set,
+                            'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_rows_calls, [
             (read_rows_args, read_rows_kwargs),
         ])
 
-        self.assertEqual(mock_rows, [(rows,)])
         expected_kwargs = {
-            'filters': [fake_rows_filter],
+            'filters': [],
             'versions': 1,
             'timestamp': None,
         }
@@ -1397,43 +1396,6 @@ class Test__columns_filter_helper(unittest.TestCase):
         self.assertEqual(filter2b.regex, col_qual2.encode('utf-8'))
 
 
-class Test__row_keys_filter_helper(unittest.TestCase):
-
-    def _callFUT(self, *args, **kwargs):
-        from google.cloud.happybase.table import _row_keys_filter_helper
-        return _row_keys_filter_helper(*args, **kwargs)
-
-    def test_no_rows(self):
-        row_keys = []
-        with self.assertRaises(ValueError):
-            self._callFUT(row_keys)
-
-    def test_single_row(self):
-        from google.cloud.bigtable.row_filters import RowKeyRegexFilter
-
-        row_key = b'row-key'
-        row_keys = [row_key]
-        result = self._callFUT(row_keys)
-        expected_result = RowKeyRegexFilter(row_key)
-        self.assertEqual(result, expected_result)
-
-    def test_many_rows(self):
-        from google.cloud.bigtable.row_filters import RowFilterUnion
-        from google.cloud.bigtable.row_filters import RowKeyRegexFilter
-
-        row_key1 = b'row-key1'
-        row_key2 = b'row-key2'
-        row_key3 = b'row-key3'
-        row_keys = [row_key1, row_key2, row_key3]
-        result = self._callFUT(row_keys)
-
-        filter1 = RowKeyRegexFilter(row_key1)
-        filter2 = RowKeyRegexFilter(row_key2)
-        filter3 = RowKeyRegexFilter(row_key3)
-        expected_result = RowFilterUnion(filters=[filter1, filter2, filter3])
-        self.assertEqual(result, expected_result)
-
-
 class Test___get_row_set_object(unittest.TestCase):
 
     def _callFUT(self, *args, **kwargs):
@@ -1448,6 +1410,22 @@ class Test___get_row_set_object(unittest.TestCase):
 
         row_set = self._callFUT(start_key, end_key)
         self.assertIsInstance(row_set, RowSet)
+
+
+class Test___get_row_set_from_rows(unittest.TestCase):
+
+    def _callFUT(self, *args, **kwargs):
+        from google.cloud.happybase.table import _get_row_set_from_rows
+        return _get_row_set_from_rows(*args, **kwargs)
+
+    def test_row_set_object(self):
+        from google.cloud.bigtable.row_set import RowSet
+
+        rows = ['row_key1', 'row_key2']
+
+        row_set = self._callFUT(rows)
+        self.assertIsInstance(row_set, RowSet)
+        self.assertEqual(rows, row_set.row_keys)
 
 
 class _Connection(object):

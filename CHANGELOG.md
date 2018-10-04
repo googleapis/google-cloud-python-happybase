@@ -17,9 +17,9 @@
 
 ### Implementation changes
 
-- Use Bigtable's `yield_rows` for `Table.rows()` and `Table.scan()`. (#37)
-- Update scan method to use row set (#42)
-
+- Use Bigtable's `yield_rows` for `Table.rows()` and `Table.scan()`. ([#37](https://github.com/googleapis/google-cloud-python-happybase/pull/37))
+- Update scan method to use row set ([#42](https://github.com/googleapis/google-cloud-python-happybase/pull/42))
+- Using row_set in rows() method.  This change should improve performance for the `rows` method. ([#44](https://github.com/googleapis/google-cloud-python-happybase/pull/44))
 
 ## 0.26.0
 

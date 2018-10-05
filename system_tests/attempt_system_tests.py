@@ -33,7 +33,7 @@ Encrypt the file via::
 
 $ travis login --github-token=$(cat travis.token)
 $ travis encrypt-file \
-> --repo=GoogleCloudPlatform/google-cloud-python-happybase \
+> --repo=googleapis/google-cloud-python-happybase \
 > key.json
 
 After running ``travis encrypt-file``, take note of the ``openssl`` command

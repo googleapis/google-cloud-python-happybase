@@ -29,7 +29,7 @@ SETUP_BASE = {
     'author': 'Google Cloud Platform',
     'author_email': 'googleapis-publisher@google.com',
     'scripts': [],
-    'url': 'https://github.com/GoogleCloudPlatform/google-cloud-python',
+    'url': 'https://github.com/googleapis/google-cloud-python',
     'license': 'Apache 2.0',
     'platforms': 'Posix; MacOS X; Windows',
     'include_package_data': True,
@@ -61,7 +61,7 @@ setup(
     version='0.30.2',
     description='Client library for Google Cloud Bigtable: HappyBase layer',
     long_description=README,
-    url='https://github.com/GoogleCloudPlatform/google-cloud-python-happybase',
+    url='https://github.com/googleapis/google-cloud-python-happybase',
     namespace_packages=[
         'google',
         'google.cloud',

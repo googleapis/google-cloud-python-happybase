@@ -14,8 +14,8 @@
   :hidden:
   :caption: External Links
 
-  GitHub <https://github.com/GoogleCloudPlatform/google-cloud-python-happybase/>
-  Issues <https://github.com/GoogleCloudPlatform/google-cloud-python/issues>
+  GitHub <https://github.com/googleapis/google-cloud-python-happybase/>
+  Issues <https://github.com/googleapis/google-cloud-python/issues>
   Stack Overflow <http://stackoverflow.com/questions/tagged/google-cloud-python>
   PyPI <https://pypi.python.org/pypi/google-cloud-happybase>
 

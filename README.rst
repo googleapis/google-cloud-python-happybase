@@ -36,7 +36,7 @@ learn more. You may also find the `authentication document`_ shared by all
 the ``google-cloud-*`` libraries to be helpful.
 
 .. _Authentication section: http://google-cloud-python.readthedocs.io/en/latest/google-cloud-auth.html
-.. _authentication document: https://github.com/GoogleCloudPlatform/gcloud-common/tree/master/authentication
+.. _authentication document: https://github.com/googleapis/gcloud-common/tree/master/authentication
 
 Contributing
 ------------
@@ -45,19 +45,19 @@ Contributions to this library are always welcome and highly encouraged.
 
 See `CONTRIBUTING`_ for more information on how to get started.
 
-.. _CONTRIBUTING: https://github.com/GoogleCloudPlatform/google-cloud-python-happybase/blob/master/CONTRIBUTING.rst
+.. _CONTRIBUTING: https://github.com/googleapis/google-cloud-python-happybase/blob/master/CONTRIBUTING.rst
 
 License
 -------
 
 MIT - See `LICENSE`_ for more information.
 
-.. _LICENSE: https://github.com/GoogleCloudPlatform/google-cloud-python-happybase/blob/master/LICENSE
+.. _LICENSE: https://github.com/googleapis/google-cloud-python-happybase/blob/master/LICENSE
 
-.. |build| image:: https://travis-ci.org/GoogleCloudPlatform/google-cloud-python-happybase.svg?branch=master
-   :target: https://travis-ci.org/GoogleCloudPlatform/google-cloud-python-happybase
-.. |coverage| image:: https://coveralls.io/repos/GoogleCloudPlatform/google-cloud-python-happybase/badge.png?branch=master
-   :target: https://coveralls.io/r/GoogleCloudPlatform/google-cloud-python-happybase?branch=master
+.. |build| image:: https://travis-ci.org/googleapis/google-cloud-python-happybase.svg?branch=master
+   :target: https://travis-ci.org/googleapis/google-cloud-python-happybase
+.. |coverage| image:: https://coveralls.io/repos/googleapis/google-cloud-python-happybase/badge.png?branch=master
+   :target: https://coveralls.io/r/googleapis/google-cloud-python-happybase?branch=master
 .. |pypi| image:: https://img.shields.io/pypi/v/google-cloud-happybase.svg
    :target: https://pypi.org/project/google-cloud-happybase/
 .. |versions| image:: https://img.shields.io/pypi/pyversions/google-cloud-happybase.svg

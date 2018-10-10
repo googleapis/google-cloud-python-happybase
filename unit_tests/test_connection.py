@@ -20,7 +20,7 @@ import unittest
 
 class Test__get_instance(unittest.TestCase):
 
-    def _callFUT(self, timeout=None):
+    def _call_fut(self, timeout=None):
         from google.cloud.happybase.connection import _get_instance
         return _get_instance(timeout=timeout)
 
@@ -32,9 +32,9 @@ class Test__get_instance(unittest.TestCase):
         client_with_instances = partial(
             _Client, instances=instances, failed_locations=failed_locations)
         with _Monkey(MUT, Client=client_with_instances):
-            result = self._callFUT(timeout=timeout)
+            result = self._call_fut(timeout=timeout)
 
-        # If we've reached this point, then _callFUT didn't fail, so we know
+        # If we've reached this point, then _call_fut didn't fail, so we know
         # there is exactly one instance.
         instance, = instances
         self.assertEqual(result, instance)
@@ -72,16 +72,16 @@ class Test__get_instance(unittest.TestCase):
 
 class TestConnection(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from google.cloud.happybase.connection import Connection
         return Connection
 
-    def _makeOne(self, *args, **kwargs):
-        return self._getTargetClass()(*args, **kwargs)
+    def _make_one(self, *args, **kwargs):
+        return self._get_target_class()(*args, **kwargs)
 
     def test_constructor_defaults(self):
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(instance=instance)
+        connection = self._make_one(instance=instance)
 
         self.assertEqual(connection._instance, instance)
         self.assertEqual(connection.table_prefix, None)
@@ -89,7 +89,7 @@ class TestConnection(unittest.TestCase):
 
     def test_constructor_no_autoconnect(self):
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
         self.assertEqual(connection.table_prefix, None)
         self.assertEqual(connection.table_prefix_separator, '_')
 
@@ -106,8 +106,8 @@ class TestConnection(unittest.TestCase):
             return instance
 
         with _Monkey(MUT, _get_instance=mock_get_instance):
-            connection = self._makeOne(autoconnect=False, instance=None,
-                                       timeout=timeout)
+            connection = self._make_one(
+                autoconnect=False, instance=None, timeout=timeout)
             self.assertEqual(connection.table_prefix, None)
             self.assertEqual(connection.table_prefix_separator, '_')
             self.assertEqual(connection._instance, instance)
@@ -121,7 +121,7 @@ class TestConnection(unittest.TestCase):
         instance_copy = _Instance()
         instance = _Instance(copies=[instance_copy])
 
-        connection = self._makeOne(
+        connection = self._make_one(
             autoconnect=autoconnect,
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
@@ -133,7 +133,7 @@ class TestConnection(unittest.TestCase):
     def test_constructor_with_unknown_argument(self):
         instance = _Instance()
         with self.assertRaises(TypeError):
-            self._makeOne(instance=instance, unknown='foo')
+            self._make_one(instance=instance, unknown='foo')
 
     def test_constructor_with_legacy_args(self):
         from google.cloud._testing import _Monkey
@@ -146,9 +146,10 @@ class TestConnection(unittest.TestCase):
 
         instance = _Instance()
         with _Monkey(MUT, _WARN=mock_warn):
-            self._makeOne(instance=instance, host=object(),
-                          port=object(), compat=object(),
-                          transport=object(), protocol=object())
+            self._make_one(
+                instance=instance, host=object(),
+                port=object(), compat=object(),
+                transport=object(), protocol=object())
 
         self.assertEqual(len(warned), 1)
         self.assertIn('host', warned[0])
@@ -160,28 +161,28 @@ class TestConnection(unittest.TestCase):
     def test_constructor_with_timeout_and_instance(self):
         instance = _Instance()
         with self.assertRaises(ValueError):
-            self._makeOne(instance=instance, timeout=object())
+            self._make_one(instance=instance, timeout=object())
 
     def test_constructor_non_string_prefix(self):
         table_prefix = object()
 
         with self.assertRaises(TypeError):
-            self._makeOne(autoconnect=False,
-                          table_prefix=table_prefix)
+            self._make_one(autoconnect=False, table_prefix=table_prefix)
 
     def test_constructor_non_string_prefix_separator(self):
         table_prefix_separator = object()
 
         with self.assertRaises(TypeError):
-            self._makeOne(autoconnect=False,
-                          table_prefix_separator=table_prefix_separator)
+            self._make_one(
+                autoconnect=False,
+                table_prefix_separator=table_prefix_separator)
 
     def test__table_name_with_prefix_set(self):
         table_prefix = 'table-prefix'
         table_prefix_separator = '<>'
         instance = _Instance()
 
-        connection = self._makeOne(
+        connection = self._make_one(
             autoconnect=False,
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
@@ -194,8 +195,7 @@ class TestConnection(unittest.TestCase):
 
     def test__table_name_with_no_prefix_set(self):
         instance = _Instance()
-        connection = self._makeOne(autoconnect=False,
-                                   instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'some-name'
         prefixed = connection._table_name(name)
@@ -205,7 +205,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase.table import Table
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
         table = connection.table(name)
@@ -220,7 +220,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         table_prefix = 'table-prefix'
         table_prefix_separator = '<>'
-        connection = self._makeOne(
+        connection = self._make_one(
             autoconnect=False, table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
             instance=instance)
@@ -251,7 +251,7 @@ class TestConnection(unittest.TestCase):
             Table(table_name1, None),
             Table(table_name2, None),
         ])
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
         result = connection.tables()
         self.assertEqual(result, [table_name1, table_name2])
 
@@ -269,7 +269,7 @@ class TestConnection(unittest.TestCase):
             Table(table_name1, None),
             Table(table_name2, None),
         ])
-        connection = self._makeOne(
+        connection = self._make_one(
             autoconnect=False, instance=instance, table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator)
         result = connection.tables()
@@ -281,7 +281,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
         mock_gc_rule = object()
         called_options = []
 
@@ -340,7 +340,7 @@ class TestConnection(unittest.TestCase):
 
     def test_create_table_bad_type(self):
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
         families = None
@@ -349,7 +349,7 @@ class TestConnection(unittest.TestCase):
 
     def test_create_table_bad_value(self):
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
         families = {}
@@ -361,7 +361,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         tables_created = []
 
@@ -410,7 +410,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         tables_created = []
 
@@ -451,7 +451,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
@@ -470,7 +470,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
@@ -489,7 +489,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
@@ -509,7 +509,7 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
-        connection = self._makeOne(autoconnect=False, instance=instance)
+        connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
@@ -526,18 +526,18 @@ class TestConnection(unittest.TestCase):
 
 class Test__parse_family_option(unittest.TestCase):
 
-    def _callFUT(self, option):
+    def _call_fut(self, option):
         from google.cloud.happybase.connection import _parse_family_option
         return _parse_family_option(option)
 
     def test_dictionary_no_keys(self):
         option = {}
-        result = self._callFUT(option)
+        result = self._call_fut(option)
         self.assertEqual(result, None)
 
     def test_null(self):
         option = None
-        result = self._callFUT(option)
+        result = self._call_fut(option)
         self.assertEqual(result, None)
 
     def test_dictionary_bad_key(self):
@@ -551,7 +551,7 @@ class Test__parse_family_option(unittest.TestCase):
 
         option = {'badkey': None}
         with _Monkey(MUT, _WARN=mock_warn):
-            result = self._callFUT(option)
+            result = self._call_fut(option)
 
         self.assertEqual(result, None)
         self.assertEqual(len(warned), 1)
@@ -562,7 +562,7 @@ class Test__parse_family_option(unittest.TestCase):
 
         versions = 42
         option = {'max_versions': versions}
-        result = self._callFUT(option)
+        result = self._call_fut(option)
 
         gc_rule = MaxVersionsGCRule(versions)
         self.assertEqual(result, gc_rule)
@@ -574,7 +574,7 @@ class Test__parse_family_option(unittest.TestCase):
         time_to_live = 24 * 60 * 60
         max_age = datetime.timedelta(days=1)
         option = {'time_to_live': time_to_live}
-        result = self._callFUT(option)
+        result = self._call_fut(option)
 
         gc_rule = MaxAgeGCRule(max_age)
         self.assertEqual(result, gc_rule)
@@ -591,7 +591,7 @@ class Test__parse_family_option(unittest.TestCase):
             'max_versions': versions,
             'time_to_live': time_to_live,
         }
-        result = self._callFUT(option)
+        result = self._call_fut(option)
 
         max_age = datetime.timedelta(days=1)
         # NOTE: This relies on the order of the rules in the method we are
@@ -604,7 +604,7 @@ class Test__parse_family_option(unittest.TestCase):
     def test_non_dictionary(self):
         option = object()
         self.assertFalse(isinstance(option, dict))
-        result = self._callFUT(option)
+        result = self._call_fut(option)
         self.assertEqual(result, option)
 
 

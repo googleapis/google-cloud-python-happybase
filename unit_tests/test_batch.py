@@ -69,20 +69,16 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
     def test_constructor_with_non_default_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
 
         table = object()
         wal = object()
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             self._make_one(table, wal=wal)
 
-        self.assertEqual(warned, [MUT._WAL_WARNING])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
 
     def test_constructor_with_non_positive_batch_size(self):
         table = object()
@@ -205,33 +201,7 @@ class TestBatch(unittest.TestCase):
         # Check how the batch was updated.
         self.assertEqual(batch._row_map, {row_key: mock_row})
 
-    def test_put_bad_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(message):
-            warned.append(message)
-            # Raise an exception so we don't have to mock the entire
-            # environment needed for put().
-            raise RuntimeError('No need to execute the rest.')
-
-        table = object()
-        batch = self._make_one(table)
-
-        row = 'row-key'
-        data = {}
-        wal = None
-
-        self.assertNotEqual(wal, MUT._WAL_SENTINEL)
-        with _Monkey(MUT, _WARN=mock_warn):
-            with self.assertRaises(RuntimeError):
-                batch.put(row, data, wal=wal)
-
-        self.assertEqual(warned, [MUT._WAL_WARNING])
-
-    def test_put(self):
+    def _put_helper(self, use_wal_none=False):
         import operator
 
         table = object()
@@ -251,7 +221,12 @@ class TestBatch(unittest.TestCase):
 
         self.assertEqual(batch._mutation_count, 0)
         self.assertEqual(row.set_cell_calls, [])
-        batch.put(row_key, data)
+
+        if use_wal_none:
+            batch.put(row_key, data, wal=None)
+        else:
+            batch.put(row_key, data)
+
         self.assertEqual(batch._mutation_count, 2)
         # Since the calls depend on data.keys(), the order
         # is non-deterministic.
@@ -266,6 +241,19 @@ class TestBatch(unittest.TestCase):
             (cell1_args, cell1_kwargs),
             (cell2_args, cell2_kwargs),
         ])
+
+    def test_put_bad_wal(self):
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
+
+        with warnings.catch_warnings(record=True) as warned:
+            self._put_helper(use_wal_none=True)
+
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
+
+    def test_put(self):
+        self._put_helper()
 
     def test_put_call_try_send(self):
         klass = self._get_target_class()
@@ -321,33 +309,7 @@ class TestBatch(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._delete_columns_test_helper(time_range=time_range)
 
-    def test_delete_bad_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(message):
-            warned.append(message)
-            # Raise an exception so we don't have to mock the entire
-            # environment needed for delete().
-            raise RuntimeError('No need to execute the rest.')
-
-        table = object()
-        batch = self._make_one(table)
-
-        row = 'row-key'
-        columns = []
-        wal = None
-
-        self.assertNotEqual(wal, MUT._WAL_SENTINEL)
-        with _Monkey(MUT, _WARN=mock_warn):
-            with self.assertRaises(RuntimeError):
-                batch.delete(row, columns=columns, wal=wal)
-
-        self.assertEqual(warned, [MUT._WAL_WARNING])
-
-    def test_delete_entire_row(self):
+    def _delete_entire_row_helper(self, use_wal_none=False):
         table = object()
         batch = self._make_one(table)
 
@@ -356,9 +318,27 @@ class TestBatch(unittest.TestCase):
 
         self.assertEqual(row.deletes, 0)
         self.assertEqual(batch._mutation_count, 0)
-        batch.delete(row_key, columns=None)
+
+        if use_wal_none:
+            batch.delete(row_key, columns=None, wal=None)
+        else:
+            batch.delete(row_key, columns=None)
+
         self.assertEqual(row.deletes, 1)
         self.assertEqual(batch._mutation_count, 1)
+
+    def test_delete_bad_wal(self):
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
+
+        with warnings.catch_warnings(record=True) as warned:
+            self._delete_entire_row_helper(use_wal_none=True)
+
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
+
+    def test_delete_entire_row(self):
+        self._delete_entire_row_helper()
 
     def test_delete_entire_row_with_ts(self):
         table = object()

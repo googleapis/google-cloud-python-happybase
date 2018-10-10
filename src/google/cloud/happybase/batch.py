@@ -27,7 +27,6 @@ from google.cloud.bigtable.row_filters import TimestampRange
 _WAL_SENTINEL = object()
 # Assumed granularity of timestamps in Cloud Bigtable.
 _ONE_MILLISECOND = datetime.timedelta(microseconds=1000)
-_WARN = warnings.warn
 _WAL_WARNING = ('The wal argument (Write-Ahead-Log) is not '
                 'supported by Cloud Bigtable.')
 
@@ -76,7 +75,7 @@ class Batch(object):
     def __init__(self, table, timestamp=None, batch_size=None,
                  transaction=False, wal=_WAL_SENTINEL):
         if wal is not _WAL_SENTINEL:
-            _WARN(_WAL_WARNING)
+            warnings.warn(_WAL_WARNING)
 
         if batch_size is not None:
             if transaction:
@@ -156,7 +155,7 @@ class Batch(object):
                     Write Ahead Log.
         """
         if wal is not _WAL_SENTINEL:
-            _WARN(_WAL_WARNING)
+            warnings.warn(_WAL_WARNING)
 
         row_object = self._get_row(row)
         # Make sure all the keys are valid before beginning
@@ -227,7 +226,7 @@ class Batch(object):
                  current batch, but a full row delete is attempted.
         """
         if wal is not _WAL_SENTINEL:
-            _WARN(_WAL_WARNING)
+            warnings.warn(_WAL_WARNING)
 
         row_object = self._get_row(row)
 

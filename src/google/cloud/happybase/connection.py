@@ -48,7 +48,6 @@ DEFAULT_COMPAT = None
 DEFAULT_PROTOCOL = None
 
 _LEGACY_ARGS = frozenset(('host', 'port', 'compat', 'transport', 'protocol'))
-_WARN = warnings.warn
 _BASE_DISABLE = 'Cloud Bigtable has no concept of enabled / disabled tables.'
 _DISABLE_DELETE_MSG = ('The disable argument should not be used in '
                        'delete_table(). ') + _BASE_DISABLE
@@ -194,7 +193,7 @@ class Connection(object):
             all_args = ', '.join(common_args)
             message = ('The HappyBase legacy arguments %s were used. These '
                        'arguments are unused by google-cloud.' % (all_args,))
-            _WARN(message)
+            warnings.warn(message)
         for arg_name in common_args:
             arguments_dict.pop(arg_name)
         if arguments_dict:
@@ -356,7 +355,7 @@ class Connection(object):
                         of enabled / disabled tables.
         """
         if disable:
-            _WARN(_DISABLE_DELETE_MSG)
+            warnings.warn(_DISABLE_DELETE_MSG)
 
         name = self._table_name(name)
         _LowLevelTable(name, self._instance).delete()
@@ -373,7 +372,7 @@ class Connection(object):
         :type name: str
         :param name: The name of the table to be enabled.
         """
-        _WARN(_ENABLE_TMPL % (name,))
+        warnings.warn(_ENABLE_TMPL % (name,))
 
     @staticmethod
     def disable_table(name):
@@ -387,7 +386,7 @@ class Connection(object):
         :type name: str
         :param name: The name of the table to be disabled.
         """
-        _WARN(_DISABLE_TMPL % (name,))
+        warnings.warn(_DISABLE_TMPL % (name,))
 
     @staticmethod
     def is_table_enabled(name):
@@ -405,7 +404,7 @@ class Connection(object):
         :rtype: bool
         :returns: The value :data:`True` always.
         """
-        _WARN(_IS_ENABLED_TMPL % (name,))
+        warnings.warn(_IS_ENABLED_TMPL % (name,))
         return True
 
     @staticmethod
@@ -424,7 +423,7 @@ class Connection(object):
         :type major: bool
         :param major: Whether to perform a major compaction.
         """
-        _WARN(_COMPACT_TMPL % (name, major))
+        warnings.warn(_COMPACT_TMPL % (name, major))
 
 
 def _parse_family_option(option):
@@ -452,7 +451,7 @@ def _parse_family_option(option):
             warning_msg = ('Cloud Bigtable only supports max_versions and '
                            'time_to_live column family settings. '
                            'Received: %s' % (all_keys,))
-            _WARN(warning_msg)
+            warnings.warn(warning_msg)
 
         max_num_versions = result.get('max_versions')
         max_age = None

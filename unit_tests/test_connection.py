@@ -133,27 +133,21 @@ class TestConnection(unittest.TestCase):
             self._make_one(instance=instance, unknown='foo')
 
     def test_constructor_with_legacy_args(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         instance = _Instance()
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             self._make_one(
                 instance=instance, host=object(),
                 port=object(), compat=object(),
                 transport=object(), protocol=object())
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('host', warned[0])
-        self.assertIn('port', warned[0])
-        self.assertIn('compat', warned[0])
-        self.assertIn('transport', warned[0])
-        self.assertIn('protocol', warned[0])
+        self.assertIn('host', str(warned[0]))
+        self.assertIn('port', str(warned[0]))
+        self.assertIn('compat', str(warned[0]))
+        self.assertIn('transport', str(warned[0]))
+        self.assertIn('protocol', str(warned[0]))
 
     def test_constructor_with_timeout_and_instance(self):
         instance = _Instance()
@@ -422,95 +416,75 @@ class TestConnection(unittest.TestCase):
         self._delete_table_helper()
 
     def test_delete_table_disable(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
+        import warnings
+        from google.cloud.happybase.connection import _DISABLE_DELETE_MSG
 
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
-
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             self._delete_table_helper(disable=True)
 
-        self.assertEqual(warned, [MUT._DISABLE_DELETE_MSG])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_DISABLE_DELETE_MSG, str(warned[0]))
 
     def test_enable_table(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
+        import warnings
+        from google.cloud.happybase.connection import _ENABLE_TMPL
 
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
-
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             connection.enable_table(name)
 
-        self.assertEqual(warned, [MUT._ENABLE_TMPL % (name,)])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_ENABLE_TMPL % (name,), str(warned[0]))
 
     def test_disable_table(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
+        import warnings
+        from google.cloud.happybase.connection import _DISABLE_TMPL
 
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
-
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             connection.disable_table(name)
 
-        self.assertEqual(warned, [MUT._DISABLE_TMPL % (name,)])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_DISABLE_TMPL % (name,), str(warned[0]))
 
     def test_is_table_enabled(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
+        import warnings
+        from google.cloud.happybase.connection import _IS_ENABLED_TMPL
 
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
-
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             result = connection.is_table_enabled(name)
 
         self.assertTrue(result)
-        self.assertEqual(warned, [MUT._IS_ENABLED_TMPL % (name,)])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_IS_ENABLED_TMPL % (name,), str(warned[0]))
 
     def test_compact_table(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
+        import warnings
+        from google.cloud.happybase.connection import _COMPACT_TMPL
 
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
         name = 'table-name'
 
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
-
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             connection.compact_table(name)
 
-        self.assertEqual(warned, [MUT._COMPACT_TMPL % (name, False)])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_COMPACT_TMPL % (name, False), str(warned[0]))
 
 
 class Test__parse_family_option(unittest.TestCase):
@@ -530,21 +504,15 @@ class Test__parse_family_option(unittest.TestCase):
         self.assertEqual(result, None)
 
     def test_dictionary_bad_key(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         option = {'badkey': None}
-        with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
             result = self._call_fut(option)
 
         self.assertEqual(result, None)
         self.assertEqual(len(warned), 1)
-        self.assertIn('badkey', warned[0])
+        self.assertIn('badkey', str(warned[0]))
 
     def test_dictionary_versions_key(self):
         from google.cloud.bigtable.column_family import MaxVersionsGCRule

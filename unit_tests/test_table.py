@@ -505,67 +505,49 @@ class TestTable(unittest.TestCase):
                          [((fake_cells,), to_pairs_kwargs)])
 
     def test_scan_with_batch_size(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
         table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(batch_size=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('batch_size', warned[0])
+        self.assertIn('batch_size', str(warned[0]))
 
     def test_scan_with_scan_batching(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
         table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(scan_batching=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('scan_batching', warned[0])
+        self.assertIn('scan_batching', str(warned[0]))
 
     def test_scan_with_sorted_columns(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
         table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(sorted_columns=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('sorted_columns', warned[0])
+        self.assertIn('sorted_columns', str(warned[0]))
 
     def test_scan_with_invalid_limit(self):
         name = 'table-name'

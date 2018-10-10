@@ -15,6 +15,8 @@
 
 import unittest
 
+import mock
+
 
 class TestConnectionPool(unittest.TestCase):
 
@@ -66,9 +68,7 @@ class TestConnectionPool(unittest.TestCase):
                              table_prefix_separator)
 
     def test_constructor_ignores_autoconnect(self):
-        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
-        from google.cloud.happybase import pool as MUT
 
         class ConnectionWithOpen(Connection):
 
@@ -91,7 +91,8 @@ class TestConnectionPool(unittest.TestCase):
 
         # Then make sure autoconnect=True is ignored in a pool.
         size = 1
-        with _Monkey(MUT, Connection=ConnectionWithOpen):
+        with mock.patch('google.cloud.happybase.pool.Connection',
+                        ConnectionWithOpen):
             pool = self._make_one(size, autoconnect=True, instance=instance)
 
         for connection in pool._queue.queue:
@@ -100,9 +101,7 @@ class TestConnectionPool(unittest.TestCase):
             self.assertFalse(connection._open_called)
 
     def test_constructor_infers_instance(self):
-        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
-        from google.cloud.happybase import pool as MUT
 
         size = 1
         instance_copy = _Instance()
@@ -114,7 +113,8 @@ class TestConnectionPool(unittest.TestCase):
             get_instance_calls.append(timeout)
             return instance
 
-        with _Monkey(MUT, _get_instance=mock_get_instance):
+        with mock.patch('google.cloud.happybase.pool._get_instance',
+                        mock_get_instance):
             pool = self._make_one(size)
 
         for connection in pool._queue.queue:
@@ -139,14 +139,11 @@ class TestConnectionPool(unittest.TestCase):
             self._make_one(size)
 
     def _make_one_with_mock_queue(self, queue_return):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import pool as MUT
-
         # We are going to use a fake queue, so we don't want any connections
         # or instances to be created in the constructor.
         size = -1
         instance = object()
-        with _Monkey(MUT, _MIN_POOL_SIZE=size):
+        with mock.patch('google.cloud.happybase.pool._MIN_POOL_SIZE', size):
             pool = self._make_one(size, instance=instance)
 
         pool._queue = _Queue(queue_return)

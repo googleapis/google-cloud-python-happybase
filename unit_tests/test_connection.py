@@ -14,8 +14,9 @@
 
 
 import sys
-
 import unittest
+
+import mock
 
 
 class Test__get_instance(unittest.TestCase):
@@ -26,12 +27,11 @@ class Test__get_instance(unittest.TestCase):
 
     def _helper(self, timeout=None, instances=(), failed_locations=()):
         from functools import partial
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
 
         client_with_instances = partial(
             _Client, instances=instances, failed_locations=failed_locations)
-        with _Monkey(MUT, Client=client_with_instances):
+        with mock.patch('google.cloud.happybase.connection.Client',
+                        client_with_instances):
             result = self._call_fut(timeout=timeout)
 
         # If we've reached this point, then _call_fut didn't fail, so we know
@@ -94,9 +94,6 @@ class TestConnection(unittest.TestCase):
         self.assertEqual(connection.table_prefix_separator, '_')
 
     def test_constructor_missing_instance(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
-
         instance = _Instance()
         timeout = object()
         get_instance_called = []
@@ -105,7 +102,8 @@ class TestConnection(unittest.TestCase):
             get_instance_called.append(timeout)
             return instance
 
-        with _Monkey(MUT, _get_instance=mock_get_instance):
+        with mock.patch('google.cloud.happybase.connection._get_instance',
+                        mock_get_instance):
             connection = self._make_one(
                 autoconnect=False, instance=None, timeout=timeout)
             self.assertEqual(connection.table_prefix, None)
@@ -277,8 +275,6 @@ class TestConnection(unittest.TestCase):
 
     def test_create_table(self):
         import operator
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
 
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
@@ -310,8 +306,12 @@ class TestConnection(unittest.TestCase):
             tables_created.append(result)
             return result
 
-        with _Monkey(MUT, _LowLevelTable=make_table,
-                     _parse_family_option=mock_parse_family_option):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.connection',
+            _LowLevelTable=make_table,
+            _parse_family_option=mock_parse_family_option,
+        )
+        with patch:
             connection.create_table(name, families)
 
         # Just one table would have been created.
@@ -357,9 +357,6 @@ class TestConnection(unittest.TestCase):
             connection.create_table(name, families)
 
     def _create_table_error_helper(self, err_val, err_type):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
-
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
@@ -373,7 +370,8 @@ class TestConnection(unittest.TestCase):
 
         name = 'table-name'
         families = {'foo': {}}
-        with _Monkey(MUT, _LowLevelTable=make_table):
+        with mock.patch('google.cloud.happybase.connection._LowLevelTable',
+                        make_table):
             with self.assertRaises(err_type):
                 connection.create_table(name, families)
 
@@ -406,9 +404,6 @@ class TestConnection(unittest.TestCase):
         self._create_table_error_helper(RuntimeError, RuntimeError)
 
     def _delete_table_helper(self, disable=False):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import connection as MUT
-
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
@@ -420,7 +415,8 @@ class TestConnection(unittest.TestCase):
             return result
 
         name = 'table-name'
-        with _Monkey(MUT, _LowLevelTable=make_table):
+        with mock.patch('google.cloud.happybase.connection._LowLevelTable',
+                        make_table):
             connection.delete_table(name, disable=disable)
 
         # Just one table would have been created.

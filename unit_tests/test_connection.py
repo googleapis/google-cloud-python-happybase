@@ -106,7 +106,6 @@ class TestConnection(unittest.TestCase):
         autoconnect = False
         table_prefix = 'table-prefix'
         table_prefix_separator = 'sep'
-        instance_copy = _Instance()
         instance = _Instance()
 
         connection = self._makeOne(

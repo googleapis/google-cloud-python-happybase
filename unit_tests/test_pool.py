@@ -46,7 +46,6 @@ class TestConnectionPool(unittest.TestCase):
         self.assertEqual(queue.maxsize, size)
         for connection in queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            self.assertTrue(connection._instance is instance_copy)
 
     def test_constructor_passes_kwargs(self):
         table_prefix = 'foo'
@@ -82,10 +81,8 @@ class TestConnectionPool(unittest.TestCase):
         instance = _Instance([instance_copy1, instance_copy2, instance_copy3])
         connection = ConnectionWithOpen(autoconnect=False, instance=instance)
         self.assertFalse(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy1)
         connection = ConnectionWithOpen(autoconnect=True, instance=instance)
         self.assertTrue(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy2)
 
         # Then make sure autoconnect=True is ignored in a pool.
         size = 1
@@ -94,7 +91,6 @@ class TestConnectionPool(unittest.TestCase):
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, ConnectionWithOpen))
-            self.assertTrue(connection._instance is instance_copy3)
             self.assertFalse(connection._open_called)
 
     def test_constructor_infers_instance(self):
@@ -117,9 +113,6 @@ class TestConnectionPool(unittest.TestCase):
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            # We know that the Connection() constructor will
-            # call instance.copy().
-            self.assertTrue(connection._instance is instance_copy)
 
         self.assertEqual(get_instance_calls, [None])
 
@@ -230,14 +223,6 @@ class _Instance(object):
         self.copies = list(copies)
         # Included to support Connection.__del__
         self._client = _Client()
-
-    def copy(self):
-        if self.copies:
-            result = self.copies[0]
-            self.copies[:] = self.copies[1:]
-            return result
-
-        return self
 
 
 class _Queue(object):

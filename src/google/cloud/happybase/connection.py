@@ -61,7 +61,7 @@ _COMPACT_TMPL = ('Connection.compact_table(%r, major=%r) was called, but the '
                  'and does not expose an API for it.')
 
 
-def _get_instance(timeout=None):
+def _get_instance():
     """Gets instance for the default project.
 
     Creates a client with the inferred credentials and project ID from
@@ -72,9 +72,6 @@ def _get_instance(timeout=None):
     If the request fails for any reason, or if there isn't exactly one instance
     owned by the project, then this function will fail.
 
-    :type timeout: int
-    :param timeout: (Optional) The socket timeout in milliseconds.
-
     :rtype: :class:`~google.cloud.bigtable.instance.Instance`
     :returns: The unique instance owned by the project inferred from
               the environment.
@@ -82,8 +79,6 @@ def _get_instance(timeout=None):
                         instances other than one.
     """
     client_kwargs = {'admin': True}
-    if timeout is not None:
-        client_kwargs['timeout_seconds'] = timeout / 1000.0
     client = Client(**client_kwargs)
     instances, failed_locations = client.list_instances()
 
@@ -103,22 +98,10 @@ def _get_instance(timeout=None):
 class Connection(object):
     """Connection to Cloud Bigtable backend.
 
-    .. note::
-
-        If you pass a ``instance``, it will be :meth:`.Instance.copy`-ed before
-        being stored on the new connection. This also copies the
-        :class:`~google.cloud.bigtable.client.Client` that created the
-        :class:`~google.cloud.bigtable.instance.Instance` instance and the
-        :class:`~oauth2client.client.Credentials` stored on the
-        client.
-
     The arguments ``host``, ``port``, ``compat``, ``transport`` and
     ``protocol`` are allowed (as keyword arguments) for compatibility with
     HappyBase. However, they will not be used in any way, and will cause a
     warning if passed.
-
-    :type timeout: int
-    :param timeout: (Optional) The socket timeout in milliseconds.
 
     :type autoconnect: bool
     :param autoconnect: (Optional) Whether the connection should be
@@ -150,7 +133,7 @@ class Connection(object):
 
     _instance = None
 
-    def __init__(self, timeout=None, autoconnect=True, table_prefix=None,
+    def __init__(self, autoconnect=True, table_prefix=None,
                  table_prefix_separator='_', instance=None, **kwargs):
         self._handle_legacy_args(kwargs)
         if table_prefix is not None:
@@ -167,12 +150,9 @@ class Connection(object):
         self.table_prefix_separator = table_prefix_separator
 
         if instance is None:
-            self._instance = _get_instance(timeout=timeout)
+            self._instance = _get_instance()
         else:
-            if timeout is not None:
-                raise ValueError('Timeout cannot be used when an existing '
-                                 'instance is passed')
-            self._instance = instance.copy()
+            self._instance = instance
 
         if autoconnect:
             self.open()

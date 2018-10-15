@@ -20,8 +20,10 @@ import unittest
 
 from google.cloud.bigtable import client as client_mod
 from google.cloud.happybase.connection import Connection
+from google.cloud.exceptions import TooManyRequests
 
 from retry import RetryResult
+from retry import RetryErrors
 from system_test_utils import unique_resource_id
 
 
@@ -103,7 +105,7 @@ def setUpModule():
 
 def tearDownModule():
     Config.CONNECTION.delete_table(TABLE_NAME)
-    Config.CONNECTION._instance.delete()
+    retry_429(Config.CONNECTION._instance.delete)()
     Config.CONNECTION.close()
 
 

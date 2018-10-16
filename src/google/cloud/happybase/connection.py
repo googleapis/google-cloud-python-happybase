@@ -149,9 +149,8 @@ class Connection(object):
         self.table_prefix_separator = table_prefix_separator
 
         if instance is None:
-            self._instance = _get_instance()
-        else:
-            self._instance = instance
+            instance = _get_instance()
+        self._instance = instance
 
         if autoconnect:
             self.open()

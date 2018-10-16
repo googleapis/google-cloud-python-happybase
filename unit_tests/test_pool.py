@@ -33,9 +33,7 @@ class TestConnectionPool(unittest.TestCase):
         from google.cloud.happybase.connection import Connection
 
         size = 11
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)  # Avoid implicit environ check.
+        instance = _Instance()  # Avoid implicit environ check.
         pool = self._make_one(size, instance=instance)
 
         self.assertTrue(isinstance(pool._lock, type(threading.Lock())))
@@ -77,11 +75,9 @@ class TestConnectionPool(unittest.TestCase):
                 self._open_called = True
 
         # First make sure the custom Connection class does as expected.
-        instance_copy1 = _Instance()
-        instance_copy2 = _Instance()
-        instance_copy3 = _Instance()
-        instance = _Instance([instance_copy1, instance_copy2, instance_copy3])
+        instance = _Instance()
         connection = ConnectionWithOpen(autoconnect=False, instance=instance)
+        self.assertTrue(connection._instance is instance)
         self.assertFalse(connection._open_called)
         connection = ConnectionWithOpen(autoconnect=True, instance=instance)
         self.assertTrue(connection._open_called)
@@ -100,9 +96,7 @@ class TestConnectionPool(unittest.TestCase):
         from google.cloud.happybase.connection import Connection
 
         size = 1
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)
+        instance = _Instance()
         get_instance_calls = []
 
         def mock_get_instance(timeout=None):
@@ -115,6 +109,7 @@ class TestConnectionPool(unittest.TestCase):
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, Connection))
+            self.assertTrue(connection._instance is instance)
 
         self.assertEqual(get_instance_calls, [None])
 
@@ -218,8 +213,7 @@ class _Connection(object):
 
 class _Instance(object):
 
-    def __init__(self, copies=()):
-        self.copies = list(copies)
+    def __init__(self):
         # Included to support Connection.__del__
         self._client = _Client()
 

@@ -29,7 +29,7 @@ class Test__get_instance(unittest.TestCase):
 
         client_with_instances = partial(
             _Client, instances=instances, failed_locations=failed_locations)
-        
+
         with mock.patch('google.cloud.happybase.connection.Client',
                         client_with_instances):
             result = self._call_fut()
@@ -113,6 +113,7 @@ class TestConnection(unittest.TestCase):
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
             instance=instance)
+        self.assertTrue(connection._instance is instance)
         self.assertEqual(connection.table_prefix, table_prefix)
         self.assertEqual(connection.table_prefix_separator,
                          table_prefix_separator)

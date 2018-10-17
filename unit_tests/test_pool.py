@@ -33,9 +33,7 @@ class TestConnectionPool(unittest.TestCase):
         from google.cloud.happybase.connection import Connection
 
         size = 11
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)  # Avoid implicit environ check.
+        instance = _Instance()  # Avoid implicit environ check.
         pool = self._make_one(size, instance=instance)
 
         self.assertTrue(isinstance(pool._lock, type(threading.Lock())))
@@ -48,7 +46,7 @@ class TestConnectionPool(unittest.TestCase):
         self.assertEqual(queue.maxsize, size)
         for connection in queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            self.assertTrue(connection._instance is instance_copy)
+            self.assertTrue(connection._instance is instance)
 
     def test_constructor_passes_kwargs(self):
         table_prefix = 'foo'
@@ -78,16 +76,12 @@ class TestConnectionPool(unittest.TestCase):
                 self._open_called = True
 
         # First make sure the custom Connection class does as expected.
-        instance_copy1 = _Instance()
-        instance_copy2 = _Instance()
-        instance_copy3 = _Instance()
-        instance = _Instance([instance_copy1, instance_copy2, instance_copy3])
+        instance = _Instance()
         connection = ConnectionWithOpen(autoconnect=False, instance=instance)
+        self.assertTrue(connection._instance is instance)
         self.assertFalse(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy1)
         connection = ConnectionWithOpen(autoconnect=True, instance=instance)
         self.assertTrue(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy2)
 
         # Then make sure autoconnect=True is ignored in a pool.
         size = 1
@@ -97,16 +91,13 @@ class TestConnectionPool(unittest.TestCase):
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, ConnectionWithOpen))
-            self.assertTrue(connection._instance is instance_copy3)
             self.assertFalse(connection._open_called)
 
     def test_constructor_infers_instance(self):
         from google.cloud.happybase.connection import Connection
 
         size = 1
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)
+        instance = _Instance()
         get_instance_calls = []
 
         def mock_get_instance(timeout=None):
@@ -119,9 +110,7 @@ class TestConnectionPool(unittest.TestCase):
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            # We know that the Connection() constructor will
-            # call instance.copy().
-            self.assertTrue(connection._instance is instance_copy)
+            self.assertTrue(connection._instance is instance)
 
         self.assertEqual(get_instance_calls, [None])
 
@@ -225,18 +214,9 @@ class _Connection(object):
 
 class _Instance(object):
 
-    def __init__(self, copies=()):
-        self.copies = list(copies)
+    def __init__(self):
         # Included to support Connection.__del__
         self._client = _Client()
-
-    def copy(self):
-        if self.copies:
-            result = self.copies[0]
-            self.copies[:] = self.copies[1:]
-            return result
-
-        return self
 
 
 class _Queue(object):

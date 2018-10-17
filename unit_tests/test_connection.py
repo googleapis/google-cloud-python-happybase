@@ -20,18 +20,19 @@ import mock
 
 class Test__get_instance(unittest.TestCase):
 
-    def _call_fut(self, timeout=None):
+    def _call_fut(self):
         from google.cloud.happybase.connection import _get_instance
-        return _get_instance(timeout=timeout)
+        return _get_instance()
 
-    def _helper(self, timeout=None, instances=(), failed_locations=()):
+    def _helper(self, instances=(), failed_locations=()):
         from functools import partial
 
         client_with_instances = partial(
             _Client, instances=instances, failed_locations=failed_locations)
+
         with mock.patch('google.cloud.happybase.connection.Client',
                         client_with_instances):
-            result = self._call_fut(timeout=timeout)
+            result = self._call_fut()
 
         # If we've reached this point, then _call_fut didn't fail, so we know
         # there is exactly one instance.
@@ -40,17 +41,11 @@ class Test__get_instance(unittest.TestCase):
         client = instance.client
         self.assertEqual(client.args, ())
         expected_kwargs = {'admin': True}
-        if timeout is not None:
-            expected_kwargs['timeout_seconds'] = timeout / 1000.0
         self.assertEqual(client.kwargs, expected_kwargs)
 
     def test_default(self):
         instance = _Instance()
         self._helper(instances=[instance])
-
-    def test_with_timeout(self):
-        instance = _Instance()
-        self._helper(timeout=2103, instances=[instance])
 
     def test_with_no_instances(self):
         with self.assertRaises(ValueError):
@@ -94,35 +89,31 @@ class TestConnection(unittest.TestCase):
 
     def test_constructor_missing_instance(self):
         instance = _Instance()
-        timeout = object()
-        get_instance_called = []
 
-        def mock_get_instance(timeout):
-            get_instance_called.append(timeout)
+        def mock_get_instance():
             return instance
 
         with mock.patch('google.cloud.happybase.connection._get_instance',
                         mock_get_instance):
             connection = self._make_one(
-                autoconnect=False, instance=None, timeout=timeout)
+                autoconnect=False, instance=None)
+
             self.assertEqual(connection.table_prefix, None)
             self.assertEqual(connection.table_prefix_separator, '_')
             self.assertEqual(connection._instance, instance)
-
-        self.assertEqual(get_instance_called, [timeout])
 
     def test_constructor_explicit(self):
         autoconnect = False
         table_prefix = 'table-prefix'
         table_prefix_separator = 'sep'
-        instance_copy = _Instance()
-        instance = _Instance(copies=[instance_copy])
+        instance = _Instance()
 
         connection = self._make_one(
             autoconnect=autoconnect,
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
             instance=instance)
+        self.assertTrue(connection._instance is instance)
         self.assertEqual(connection.table_prefix, table_prefix)
         self.assertEqual(connection.table_prefix_separator,
                          table_prefix_separator)
@@ -148,11 +139,6 @@ class TestConnection(unittest.TestCase):
         self.assertIn('compat', str(warned[0]))
         self.assertIn('transport', str(warned[0]))
         self.assertIn('protocol', str(warned[0]))
-
-    def test_constructor_with_timeout_and_instance(self):
-        instance = _Instance()
-        with self.assertRaises(ValueError):
-            self._make_one(instance=instance, timeout=object())
 
     def test_constructor_non_string_prefix(self):
         table_prefix = object()
@@ -581,19 +567,10 @@ class _Client(object):
 
 class _Instance(object):
 
-    def __init__(self, copies=(), list_tables_result=()):
-        self.copies = list(copies)
+    def __init__(self, list_tables_result=()):
         # Included to support Connection.__del__
         self._client = _Client()
         self.list_tables_result = list_tables_result
-
-    def copy(self):
-        if self.copies:
-            result = self.copies[0]
-            self.copies[:] = self.copies[1:]
-            return result
-
-        return self
 
     def list_tables(self):
         return self.list_tables_result

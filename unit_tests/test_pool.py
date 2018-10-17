@@ -46,6 +46,7 @@ class TestConnectionPool(unittest.TestCase):
         self.assertEqual(queue.maxsize, size)
         for connection in queue.queue:
             self.assertTrue(isinstance(connection, Connection))
+            self.assertTrue(connection._instance is instance)
 
     def test_constructor_passes_kwargs(self):
         table_prefix = 'foo'

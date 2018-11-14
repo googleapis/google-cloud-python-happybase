@@ -253,8 +253,6 @@ class TestConnection(unittest.TestCase):
         self.assertEqual(result, [unprefixed_table_name1])
 
     def test_create_table(self):
-        import operator
-
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
         mock_gc_rule = object()
@@ -581,7 +579,7 @@ class _MockLowLevelTable(object):
     def delete(self):
         self.delete_calls += 1
 
-    def create(self, column_families={}):
+    def create(self, column_families):
         self.create_calls += 1
         self.col_fam_dict = column_families
         if self.create_error:

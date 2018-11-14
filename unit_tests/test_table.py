@@ -14,42 +14,41 @@
 
 import unittest
 
+import mock
+
 
 class Test_make_row(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import make_row
         return make_row(*args, **kwargs)
 
     def test_it(self):
         with self.assertRaises(NotImplementedError):
-            self._callFUT({}, False)
+            self._call_fut({}, False)
 
 
 class Test_make_ordered_row(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import make_ordered_row
         return make_ordered_row(*args, **kwargs)
 
     def test_it(self):
         with self.assertRaises(NotImplementedError):
-            self._callFUT([], False)
+            self._call_fut([], False)
 
 
 class TestTable(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from google.cloud.happybase.table import Table
         return Table
 
-    def _makeOne(self, *args, **kwargs):
-        return self._getTargetClass()(*args, **kwargs)
+    def _make_one(self, *args, **kwargs):
+        return self._get_target_class()(*args, **kwargs)
 
     def test_constructor(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         instance = object()
         connection = _Connection(instance)
@@ -60,8 +59,9 @@ class TestTable(unittest.TestCase):
             tables_constructed.append(result)
             return result
 
-        with _Monkey(MUT, _LowLevelTable=make_low_level_table):
-            table = self._makeOne(name, connection)
+        with mock.patch('google.cloud.happybase.table._LowLevelTable',
+                        make_low_level_table):
+            table = self._make_one(name, connection)
         self.assertEqual(table.name, name)
         self.assertEqual(table.connection, connection)
 
@@ -73,18 +73,15 @@ class TestTable(unittest.TestCase):
     def test_constructor_null_connection(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         self.assertEqual(table.name, name)
         self.assertEqual(table.connection, connection)
         self.assertEqual(table._low_level_table, None)
 
     def test_families(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
 
         # Mock the column families to be returned.
@@ -101,7 +98,8 @@ class TestTable(unittest.TestCase):
             to_dict_calls.append(gc_rule)
             return to_dict_result
 
-        with _Monkey(MUT, _gc_rule_to_dict=mock_gc_rule_to_dict):
+        with mock.patch('google.cloud.happybase.table._gc_rule_to_dict',
+                        mock_gc_rule_to_dict):
             result = table.families()
 
         self.assertEqual(result, {col_fam_name: to_dict_result})
@@ -110,24 +108,21 @@ class TestTable(unittest.TestCase):
 
     def test___repr__(self):
         name = 'table-name'
-        table = self._makeOne(name, None)
+        table = self._make_one(name, None)
         self.assertEqual(repr(table), '<table.Table name=\'table-name\'>')
 
     def test_regions(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
 
         with self.assertRaises(NotImplementedError):
             table.regions()
 
     def test_row_empty_row(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.read_row_result = None
 
@@ -141,7 +136,8 @@ class TestTable(unittest.TestCase):
 
         row_key = 'row-key'
         timestamp = object()
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper):
+        with mock.patch('google.cloud.happybase.table._filter_chain_helper',
+                        mock_filter_chain_helper):
             result = table.row(row_key, timestamp=timestamp)
 
         # read_row_result == None --> No results.
@@ -161,12 +157,9 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_row_with_columns(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.read_row_result = None
 
@@ -187,8 +180,12 @@ class TestTable(unittest.TestCase):
 
         row_key = 'row-key'
         columns = object()
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _columns_filter_helper=mock_columns_filter_helper):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _columns_filter_helper=mock_columns_filter_helper,
+        )
+        with patch:
             result = table.row(row_key, columns=columns)
 
         # read_row_result == None --> No results.
@@ -209,14 +206,12 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_row_with_results(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
         from google.cloud.bigtable.row_data import PartialRowData
 
         row_key = 'row-key'
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         partial_row = PartialRowData(row_key)
         table._low_level_table.read_row_result = partial_row
@@ -241,8 +236,12 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         partial_row._cells = {col_fam: {qual: fake_cells}}
         include_timestamp = object()
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _cells_to_pairs=mock_cells_to_pairs):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _cells_to_pairs=mock_cells_to_pairs,
+        )
+        with patch:
             result = table.row(row_key, include_timestamp=include_timestamp)
 
         # The results come from _cells_to_pairs.
@@ -268,18 +267,15 @@ class TestTable(unittest.TestCase):
     def test_rows_empty_row(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
 
         result = table.rows([])
         self.assertEqual(result, [])
 
     def test_rows_with_columns(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         rr_result = _MockPartialRowsData()
         table._low_level_table.read_rows_result = rr_result
@@ -307,9 +303,13 @@ class TestTable(unittest.TestCase):
 
         rows = ['row-key']
         columns = object()
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _columns_filter_helper=mock_columns_filter_helper,
-                     _get_row_set_from_rows=mock_get_row_set_from_rows):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _columns_filter_helper=mock_columns_filter_helper,
+            _get_row_set_from_rows=mock_get_row_set_from_rows,
+        )
+        with patch:
             result = table.rows(rows, columns=columns)
 
         # read_rows_result == Empty PartialRowsData --> No results.
@@ -332,8 +332,6 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_rows_with_results(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
         from google.cloud.bigtable.row_data import PartialRowData
 
         row_key1 = 'row-key1'
@@ -341,7 +339,7 @@ class TestTable(unittest.TestCase):
         rows = [row_key1, row_key2]
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
 
         row1 = PartialRowData(row_key1)
@@ -375,9 +373,13 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         row1._cells = {col_fam: {qual: fake_cells}}
         include_timestamp = object()
-        with _Monkey(MUT, _get_row_set_from_rows=mock_get_row_set_from_rows,
-                     _filter_chain_helper=mock_filter_chain_helper,
-                     _cells_to_pairs=mock_cells_to_pairs):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _get_row_set_from_rows=mock_get_row_set_from_rows,
+            _cells_to_pairs=mock_cells_to_pairs,
+        )
+        with patch:
             result = table.rows(rows, include_timestamp=include_timestamp)
 
         # read_rows_result == PartialRowsData with row_key1
@@ -402,12 +404,9 @@ class TestTable(unittest.TestCase):
                          [((fake_cells,), to_pairs_kwargs)])
 
     def test_cells_empty_row(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.read_row_result = None
 
@@ -421,7 +420,8 @@ class TestTable(unittest.TestCase):
 
         row_key = 'row-key'
         column = 'fam:col1'
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper):
+        with mock.patch('google.cloud.happybase.table._filter_chain_helper',
+                        mock_filter_chain_helper):
             result = table.cells(row_key, column)
 
         # read_row_result == None --> No results.
@@ -441,14 +441,12 @@ class TestTable(unittest.TestCase):
         self.assertEqual(mock_filters, [expected_kwargs])
 
     def test_cells_with_results(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
         from google.cloud.bigtable.row_data import PartialRowData
 
         row_key = 'row-key'
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         partial_row = PartialRowData(row_key)
         table._low_level_table.read_row_result = partial_row
@@ -478,8 +476,12 @@ class TestTable(unittest.TestCase):
         fake_cells = object()
         partial_row._cells = {col_fam: {qual: fake_cells}}
         column = col_fam + ':' + qual
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _cells_to_pairs=mock_cells_to_pairs):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _cells_to_pairs=mock_cells_to_pairs,
+        )
+        with patch:
             result = table.cells(row_key, column, versions=versions,
                                  timestamp=timestamp,
                                  include_timestamp=include_timestamp)
@@ -503,86 +505,68 @@ class TestTable(unittest.TestCase):
                          [((fake_cells,), to_pairs_kwargs)])
 
     def test_scan_with_batch_size(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(batch_size=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('batch_size', warned[0])
+        self.assertIn('batch_size', str(warned[0]))
 
     def test_scan_with_scan_batching(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(scan_batching=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('scan_batching', warned[0])
+        self.assertIn('scan_batching', str(warned[0]))
 
     def test_scan_with_sorted_columns(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         # Use unknown to force a TypeError, so we don't need to
         # stub out the rest of the method.
-        with self.assertRaises(TypeError):
-            with _Monkey(MUT, _WARN=mock_warn):
+        with warnings.catch_warnings(record=True) as warned:
+            with self.assertRaises(TypeError):
                 list(table.scan(sorted_columns=object(), unknown=None))
 
         self.assertEqual(len(warned), 1)
-        self.assertIn('sorted_columns', warned[0])
+        self.assertIn('sorted_columns', str(warned[0]))
 
     def test_scan_with_invalid_limit(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         with self.assertRaises(ValueError):
             list(table.scan(limit=-10))
 
     def test_scan_with_row_prefix_and_row_start(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         with self.assertRaises(ValueError):
             list(table.scan(row_prefix='a', row_stop='abc'))
 
     def test_scan_with_string_filter(self):
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         with self.assertRaises(TypeError):
             list(table.scan(filter='some-string'))
 
@@ -591,13 +575,12 @@ class TestTable(unittest.TestCase):
                           include_timestamp=False, limit=None, rr_result=None,
                           expected_result=None):
         import types
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
+        from google.cloud.happybase.table import _string_successor
 
         name = 'table-name'
         row_start, row_stop = row_limits
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         rr_result = rr_result or _MockPartialRowsData()
         table._low_level_table.read_rows_result = rr_result
@@ -623,9 +606,13 @@ class TestTable(unittest.TestCase):
         def mock_get_row_set_object(*args):  # pylint: disable=unused-argument
             return fake_row_set
 
-        with _Monkey(MUT, _filter_chain_helper=mock_filter_chain_helper,
-                     _columns_filter_helper=mock_columns_filter_helper,
-                     _get_row_set_object=mock_get_row_set_object):
+        patch = mock.patch.multiple(
+            'google.cloud.happybase.table',
+            _filter_chain_helper=mock_filter_chain_helper,
+            _columns_filter_helper=mock_columns_filter_helper,
+            _get_row_set_object=mock_get_row_set_object,
+        )
+        with patch:
             result = table.scan(row_start=row_start, row_stop=row_stop,
                                 row_prefix=row_prefix, columns=columns,
                                 filter=filter_, timestamp=timestamp,
@@ -640,7 +627,7 @@ class TestTable(unittest.TestCase):
         read_rows_args = ()
         if row_prefix:
             row_start = row_prefix
-            row_stop = MUT._string_successor(row_prefix)
+            row_stop = _string_successor(row_prefix)
 
         read_rows_kwargs = {
             'row_set': fake_row_set,
@@ -706,13 +693,11 @@ class TestTable(unittest.TestCase):
                                expected_result=expected_result)
 
     def test_put(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
         from google.cloud.happybase.table import _WAL_SENTINEL
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         batches_created = []
 
         def make_batch(*args, **kwargs):
@@ -723,7 +708,8 @@ class TestTable(unittest.TestCase):
         row = 'row-key'
         data = {'fam:col': 'foo'}
         timestamp = None
-        with _Monkey(MUT, Batch=make_batch):
+        with mock.patch('google.cloud.happybase.table.Batch',
+                        make_batch):
             result = table.put(row, data, timestamp=timestamp)
 
         # There is no return value.
@@ -746,13 +732,11 @@ class TestTable(unittest.TestCase):
         self.assertEqual(batch.delete_args, [])
 
     def test_delete(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
         from google.cloud.happybase.table import _WAL_SENTINEL
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         batches_created = []
 
         def make_batch(*args, **kwargs):
@@ -763,7 +747,8 @@ class TestTable(unittest.TestCase):
         row = 'row-key'
         columns = ['fam:col1', 'fam:col2']
         timestamp = None
-        with _Monkey(MUT, Batch=make_batch):
+        with mock.patch('google.cloud.happybase.table.Batch',
+                        make_batch):
             result = table.delete(row, columns=columns, timestamp=timestamp)
 
         # There is no return value.
@@ -786,19 +771,17 @@ class TestTable(unittest.TestCase):
         self.assertEqual(batch.delete_args, [(row, columns)])
 
     def test_batch(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
-
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
 
         timestamp = object()
         batch_size = 42
         transaction = False  # Must be False when batch_size is non-null
         wal = object()
 
-        with _Monkey(MUT, Batch=_MockBatch):
+        with mock.patch('google.cloud.happybase.table.Batch',
+                        _MockBatch):
             result = table.batch(timestamp=timestamp, batch_size=batch_size,
                                  transaction=transaction, wal=wal)
 
@@ -813,7 +796,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result.kwargs, expected_kwargs)
 
     def test_counter_get(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
         counter_value = 1337
 
         class TableWithInc(klass):
@@ -838,7 +821,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(TableWithInc.incremented, [(row, column, 0)])
 
     def test_counter_dec(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
         counter_value = 42
 
         class TableWithInc(klass):
@@ -868,7 +851,7 @@ class TestTable(unittest.TestCase):
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         # Mock the return values.
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.row_values[row] = row_obj = _MockLowLevelRow(
@@ -890,12 +873,11 @@ class TestTable(unittest.TestCase):
 
     def test_counter_set(self):
         import struct
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import table as MUT
+        from google.cloud.happybase.table import _WAL_SENTINEL
 
         name = 'table-name'
         connection = None
-        table = self._makeOne(name, connection)
+        table = self._make_one(name, connection)
         batches_created = []
 
         def make_batch(*args, **kwargs):
@@ -906,7 +888,8 @@ class TestTable(unittest.TestCase):
         row = 'row-key'
         column = 'fam:col1'
         value = 42
-        with _Monkey(MUT, Batch=make_batch):
+        with mock.patch('google.cloud.happybase.table.Batch',
+                        make_batch):
             result = table.counter_set(row, column, value=value)
 
         # There is no return value.
@@ -920,7 +903,7 @@ class TestTable(unittest.TestCase):
             'timestamp': None,
             'batch_size': None,
             'transaction': False,
-            'wal': MUT._WAL_SENTINEL,
+            'wal': _WAL_SENTINEL,
         }
         self.assertEqual(batch.kwargs, expected_kwargs)
         # Make sure it was a successful context manager
@@ -1015,13 +998,13 @@ class TestTable(unittest.TestCase):
 
 class Test__gc_rule_to_dict(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _gc_rule_to_dict
         return _gc_rule_to_dict(*args, **kwargs)
 
     def test_with_null(self):
         gc_rule = None
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertEqual(result, {})
 
     def test_with_max_versions(self):
@@ -1029,7 +1012,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
 
         max_versions = 2
         gc_rule = MaxVersionsGCRule(max_versions)
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         expected_result = {'max_versions': max_versions}
         self.assertEqual(result, expected_result)
 
@@ -1040,27 +1023,27 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         time_to_live = 101
         max_age = datetime.timedelta(seconds=time_to_live)
         gc_rule = MaxAgeGCRule(max_age)
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         expected_result = {'time_to_live': time_to_live}
         self.assertEqual(result, expected_result)
 
     def test_with_non_gc_rule(self):
         gc_rule = object()
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_gc_rule_union(self):
         from google.cloud.bigtable.column_family import GCRuleUnion
 
         gc_rule = GCRuleUnion(rules=[])
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_intersection_other_than_two(self):
         from google.cloud.bigtable.column_family import GCRuleIntersection
 
         gc_rule = GCRuleIntersection(rules=[])
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_intersection_two_max_num_versions(self):
@@ -1070,7 +1053,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         rule1 = MaxVersionsGCRule(1)
         rule2 = MaxVersionsGCRule(2)
         gc_rule = GCRuleIntersection(rules=[rule1, rule2])
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertTrue(result is gc_rule)
 
     def test_with_intersection_two_rules(self):
@@ -1085,7 +1068,7 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         max_versions = 2
         rule2 = MaxVersionsGCRule(max_versions)
         gc_rule = GCRuleIntersection(rules=[rule1, rule2])
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         expected_result = {
             'max_versions': max_versions,
             'time_to_live': time_to_live,
@@ -1098,48 +1081,48 @@ class Test__gc_rule_to_dict(unittest.TestCase):
         rule1 = GCRuleIntersection(rules=[])
         rule2 = GCRuleIntersection(rules=[])
         gc_rule = GCRuleIntersection(rules=[rule1, rule2])
-        result = self._callFUT(gc_rule)
+        result = self._call_fut(gc_rule)
         self.assertTrue(result is gc_rule)
 
 
 class Test__string_successor(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _string_successor
         return _string_successor(*args, **kwargs)
 
     def test_with_alphanumeric(self):
-        self.assertEqual(self._callFUT(b'boa'), b'bob')
-        self.assertEqual(self._callFUT(b'abc1'), b'abc2')
+        self.assertEqual(self._call_fut(b'boa'), b'bob')
+        self.assertEqual(self._call_fut(b'abc1'), b'abc2')
 
     def test_with_last_byte(self):
-        self.assertEqual(self._callFUT(b'boa\xff'), b'bob')
+        self.assertEqual(self._call_fut(b'boa\xff'), b'bob')
 
     def test_with_empty_string(self):
-        self.assertEqual(self._callFUT(b''), b'')
+        self.assertEqual(self._call_fut(b''), b'')
 
     def test_with_all_last_bytes(self):
-        self.assertEqual(self._callFUT(b'\xff\xff\xff'), b'')
+        self.assertEqual(self._call_fut(b'\xff\xff\xff'), b'')
 
     def test_with_unicode_input(self):
-        self.assertEqual(self._callFUT(u'boa'), b'bob')
+        self.assertEqual(self._call_fut(u'boa'), b'bob')
 
 
 class Test__convert_to_time_range(unittest.TestCase):
 
-    def _callFUT(self, timestamp=None):
+    def _call_fut(self, timestamp=None):
         from google.cloud.happybase.table import _convert_to_time_range
         return _convert_to_time_range(timestamp=timestamp)
 
     def test_null(self):
         timestamp = None
-        result = self._callFUT(timestamp=timestamp)
+        result = self._call_fut(timestamp=timestamp)
         self.assertEqual(result, None)
 
     def test_invalid_type(self):
         timestamp = object()
         with self.assertRaises(TypeError):
-            self._callFUT(timestamp=timestamp)
+            self._call_fut(timestamp=timestamp)
 
     def test_success(self):
         from google.cloud._helpers import _datetime_from_microseconds
@@ -1147,7 +1130,7 @@ class Test__convert_to_time_range(unittest.TestCase):
 
         timestamp = 1441928298571
         ts_dt = _datetime_from_microseconds(1000 * timestamp)
-        result = self._callFUT(timestamp=timestamp)
+        result = self._call_fut(timestamp=timestamp)
         self.assertTrue(isinstance(result, TimestampRange))
         self.assertEqual(result.start, None)
         self.assertEqual(result.end, ts_dt)
@@ -1155,7 +1138,7 @@ class Test__convert_to_time_range(unittest.TestCase):
 
 class Test__cells_to_pairs(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _cells_to_pairs
         return _cells_to_pairs(*args, **kwargs)
 
@@ -1167,7 +1150,7 @@ class Test__cells_to_pairs(unittest.TestCase):
         value2 = 'bar'
         cell2 = Cell(value=value2, timestamp_micros=None)
 
-        result = self._callFUT([cell1, cell2])
+        result = self._call_fut([cell1, cell2])
         self.assertEqual(result, [value1, value2])
 
     def test_with_timestamp(self):
@@ -1183,14 +1166,14 @@ class Test__cells_to_pairs(unittest.TestCase):
         ts2 = ts2_millis * 1000
         cell2 = Cell(value=value2, timestamp_micros=ts2)
 
-        result = self._callFUT([cell1, cell2], include_timestamp=True)
+        result = self._call_fut([cell1, cell2], include_timestamp=True)
         self.assertEqual(result,
                          [(value1, ts1_millis), (value2, ts2_millis)])
 
 
 class Test__partial_row_to_dict(unittest.TestCase):
 
-    def _callFUT(self, partial_row_data, include_timestamp=False):
+    def _call_fut(self, partial_row_data, include_timestamp=False):
         from google.cloud.happybase.table import _partial_row_to_dict
         return _partial_row_to_dict(partial_row_data,
                                     include_timestamp=include_timestamp)
@@ -1206,7 +1189,7 @@ class Test__partial_row_to_dict(unittest.TestCase):
             b'col1': [Cell(val1, None)],
             b'col2': [Cell(val2, None)],
         }
-        result = self._callFUT(row_data)
+        result = self._call_fut(row_data)
         expected_result = {
             b'fam1:col1': val1,
             b'fam1:col2': val2,
@@ -1228,7 +1211,7 @@ class Test__partial_row_to_dict(unittest.TestCase):
             b'col1': [Cell(val1, ts1)],
             b'col2': [Cell(val2, ts2)],
         }
-        result = self._callFUT(row_data, include_timestamp=True)
+        result = self._call_fut(row_data, include_timestamp=True)
         expected_result = {
             b'fam1:col1': (val1, ts1_millis),
             b'fam1:col2': (val2, ts2_millis),
@@ -1238,19 +1221,19 @@ class Test__partial_row_to_dict(unittest.TestCase):
 
 class Test__filter_chain_helper(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _filter_chain_helper
         return _filter_chain_helper(*args, **kwargs)
 
     def test_no_filters(self):
         with self.assertRaises(ValueError):
-            self._callFUT()
+            self._call_fut()
 
     def test_single_filter(self):
         from google.cloud.bigtable.row_filters import CellsColumnLimitFilter
 
         versions = 1337
-        result = self._callFUT(versions=versions)
+        result = self._call_fut(versions=versions)
         self.assertTrue(isinstance(result, CellsColumnLimitFilter))
         # Relies on the fact that RowFilter instances can
         # only have one value set.
@@ -1261,7 +1244,7 @@ class Test__filter_chain_helper(unittest.TestCase):
 
         filters = []
         versions = 1337
-        result = self._callFUT(versions=versions, filters=filters)
+        result = self._call_fut(versions=versions, filters=filters)
         # Make sure filters has grown.
         self.assertEqual(filters, [result])
 
@@ -1283,7 +1266,7 @@ class Test__filter_chain_helper(unittest.TestCase):
             qual = 'qual'
         if column is None:
             column = col_fam + ':' + qual
-        result = self._callFUT(column, versions=versions, timestamp=timestamp)
+        result = self._call_fut(column, versions=versions, timestamp=timestamp)
         self.assertTrue(isinstance(result, RowFilterChain))
 
         self.assertEqual(len(result.filters), num_filters)
@@ -1349,21 +1332,21 @@ class Test__filter_chain_helper(unittest.TestCase):
 
 class Test__columns_filter_helper(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _columns_filter_helper
         return _columns_filter_helper(*args, **kwargs)
 
     def test_no_columns(self):
         columns = []
         with self.assertRaises(ValueError):
-            self._callFUT(columns)
+            self._call_fut(columns)
 
     def test_single_column(self):
         from google.cloud.bigtable.row_filters import FamilyNameRegexFilter
 
         col_fam = 'cf1'
         columns = [col_fam]
-        result = self._callFUT(columns)
+        result = self._call_fut(columns)
         expected_result = FamilyNameRegexFilter(col_fam)
         self.assertEqual(result, expected_result)
 
@@ -1378,7 +1361,7 @@ class Test__columns_filter_helper(unittest.TestCase):
         col_fam2 = 'cf2'
         col_qual2 = 'qual2'
         columns = [col_fam1, col_fam2 + ':' + col_qual2]
-        result = self._callFUT(columns)
+        result = self._call_fut(columns)
 
         self.assertTrue(isinstance(result, RowFilterUnion))
         self.assertEqual(len(result.filters), 2)
@@ -1398,7 +1381,7 @@ class Test__columns_filter_helper(unittest.TestCase):
 
 class Test___get_row_set_object(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _get_row_set_object
         return _get_row_set_object(*args, **kwargs)
 
@@ -1408,13 +1391,13 @@ class Test___get_row_set_object(unittest.TestCase):
         start_key = b"row_key2"
         end_key = b"row_key9"
 
-        row_set = self._callFUT(start_key, end_key)
+        row_set = self._call_fut(start_key, end_key)
         self.assertIsInstance(row_set, RowSet)
 
 
 class Test___get_row_set_from_rows(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.table import _get_row_set_from_rows
         return _get_row_set_from_rows(*args, **kwargs)
 
@@ -1423,7 +1406,7 @@ class Test___get_row_set_from_rows(unittest.TestCase):
 
         rows = ['row_key1', 'row_key2']
 
-        row_set = self._callFUT(rows)
+        row_set = self._call_fut(rows)
         self.assertIsInstance(row_set, RowSet)
         self.assertEqual(rows, row_set.row_keys)
 

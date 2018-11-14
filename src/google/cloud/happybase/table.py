@@ -41,7 +41,6 @@ from google.cloud.happybase.batch import _WAL_SENTINEL
 from google.cloud.happybase.batch import Batch
 
 
-_WARN = warnings.warn
 _PACK_I64 = struct.Struct('>q').pack
 _UNPACK_I64 = struct.Struct('>q').unpack
 _SIMPLE_GC_RULES = (MaxAgeGCRule, MaxVersionsGCRule)
@@ -885,7 +884,7 @@ def _scan_filter_helper(row_start, row_stop, row_prefix, columns,
         legacy_args = ', '.join(legacy_args)
         message = ('The HappyBase legacy arguments %s were used. These '
                    'arguments are unused by google-cloud.' % (legacy_args,))
-        _WARN(message)
+        warnings.warn(message)
     if kwargs:
         raise TypeError('Received unexpected arguments', kwargs.keys())
 

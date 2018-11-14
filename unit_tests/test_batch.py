@@ -26,16 +26,16 @@ class _SendMixin(object):
 
 class TestBatch(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from google.cloud.happybase.batch import Batch
         return Batch
 
-    def _makeOne(self, *args, **kwargs):
-        return self._getTargetClass()(*args, **kwargs)
+    def _make_one(self, *args, **kwargs):
+        return self._get_target_class()(*args, **kwargs)
 
     def test_constructor_defaults(self):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
         self.assertEqual(batch._table, table)
         self.assertEqual(batch._batch_size, None)
         self.assertEqual(batch._timestamp, None)
@@ -53,8 +53,9 @@ class TestBatch(unittest.TestCase):
         batch_size = 42
         transaction = False  # Must be False when batch_size is non-null
 
-        batch = self._makeOne(table, timestamp=timestamp,
-                              batch_size=batch_size, transaction=transaction)
+        batch = self._make_one(
+            table, timestamp=timestamp,
+            batch_size=batch_size, transaction=transaction)
         self.assertEqual(batch._table, table)
         self.assertEqual(batch._batch_size, batch_size)
         self.assertEqual(batch._timestamp,
@@ -68,41 +69,37 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
     def test_constructor_with_non_default_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(msg):
-            warned.append(msg)
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
 
         table = object()
         wal = object()
-        with _Monkey(MUT, _WARN=mock_warn):
-            self._makeOne(table, wal=wal)
+        with warnings.catch_warnings(record=True) as warned:
+            self._make_one(table, wal=wal)
 
-        self.assertEqual(warned, [MUT._WAL_WARNING])
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
 
     def test_constructor_with_non_positive_batch_size(self):
         table = object()
         batch_size = -10
         with self.assertRaises(ValueError):
-            self._makeOne(table, batch_size=batch_size)
+            self._make_one(table, batch_size=batch_size)
         batch_size = 0
         with self.assertRaises(ValueError):
-            self._makeOne(table, batch_size=batch_size)
+            self._make_one(table, batch_size=batch_size)
 
     def test_constructor_with_batch_size_and_transactional(self):
         table = object()
         batch_size = 1
         transaction = True
         with self.assertRaises(TypeError):
-            self._makeOne(table, batch_size=batch_size,
-                          transaction=transaction)
+            self._make_one(
+                table, batch_size=batch_size, transaction=transaction)
 
     def test_send(self):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
 
         batch._row_map = row_map = _MockRowMap()
         row_map['row-key1'] = row1 = _MockRow()
@@ -123,7 +120,7 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(row_map, {})
 
     def test__try_send_no_batch_size(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -137,7 +134,7 @@ class TestBatch(unittest.TestCase):
         self.assertFalse(batch._send_called)
 
     def test__try_send_too_few_mutations(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -155,7 +152,7 @@ class TestBatch(unittest.TestCase):
         self.assertFalse(batch._send_called)
 
     def test__try_send_actual_send(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -174,7 +171,7 @@ class TestBatch(unittest.TestCase):
 
     def test__get_row_exists(self):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
 
         row_key = 'row-key'
         row_obj = object()
@@ -186,7 +183,7 @@ class TestBatch(unittest.TestCase):
         # Make mock batch and make sure we can create a low-level table.
         low_level_table = _MockLowLevelTable()
         table = _MockTable(low_level_table)
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
 
         # Make sure row map is empty.
         self.assertEqual(batch._row_map, {})
@@ -204,37 +201,11 @@ class TestBatch(unittest.TestCase):
         # Check how the batch was updated.
         self.assertEqual(batch._row_map, {row_key: mock_row})
 
-    def test_put_bad_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(message):
-            warned.append(message)
-            # Raise an exception so we don't have to mock the entire
-            # environment needed for put().
-            raise RuntimeError('No need to execute the rest.')
-
-        table = object()
-        batch = self._makeOne(table)
-
-        row = 'row-key'
-        data = {}
-        wal = None
-
-        self.assertNotEqual(wal, MUT._WAL_SENTINEL)
-        with _Monkey(MUT, _WARN=mock_warn):
-            with self.assertRaises(RuntimeError):
-                batch.put(row, data, wal=wal)
-
-        self.assertEqual(warned, [MUT._WAL_WARNING])
-
-    def test_put(self):
+    def _put_helper(self, use_wal_none=False):
         import operator
 
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
         batch._timestamp = timestamp = object()
         row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
@@ -250,7 +221,12 @@ class TestBatch(unittest.TestCase):
 
         self.assertEqual(batch._mutation_count, 0)
         self.assertEqual(row.set_cell_calls, [])
-        batch.put(row_key, data)
+
+        if use_wal_none:
+            batch.put(row_key, data, wal=None)
+        else:
+            batch.put(row_key, data)
+
         self.assertEqual(batch._mutation_count, 2)
         # Since the calls depend on data.keys(), the order
         # is non-deterministic.
@@ -266,8 +242,21 @@ class TestBatch(unittest.TestCase):
             (cell2_args, cell2_kwargs),
         ])
 
+    def test_put_bad_wal(self):
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
+
+        with warnings.catch_warnings(record=True) as warned:
+            self._put_helper(use_wal_none=True)
+
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
+
+    def test_put(self):
+        self._put_helper()
+
     def test_put_call_try_send(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class CallTrySend(klass):
 
@@ -291,7 +280,7 @@ class TestBatch(unittest.TestCase):
 
     def _delete_columns_test_helper(self, time_range=None):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
         batch._delete_range = time_range
 
         col1_fam = 'cf1'
@@ -320,48 +309,40 @@ class TestBatch(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._delete_columns_test_helper(time_range=time_range)
 
-    def test_delete_bad_wal(self):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import batch as MUT
-
-        warned = []
-
-        def mock_warn(message):
-            warned.append(message)
-            # Raise an exception so we don't have to mock the entire
-            # environment needed for delete().
-            raise RuntimeError('No need to execute the rest.')
-
+    def _delete_entire_row_helper(self, use_wal_none=False):
         table = object()
-        batch = self._makeOne(table)
-
-        row = 'row-key'
-        columns = []
-        wal = None
-
-        self.assertNotEqual(wal, MUT._WAL_SENTINEL)
-        with _Monkey(MUT, _WARN=mock_warn):
-            with self.assertRaises(RuntimeError):
-                batch.delete(row, columns=columns, wal=wal)
-
-        self.assertEqual(warned, [MUT._WAL_WARNING])
-
-    def test_delete_entire_row(self):
-        table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
 
         row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
 
         self.assertEqual(row.deletes, 0)
         self.assertEqual(batch._mutation_count, 0)
-        batch.delete(row_key, columns=None)
+
+        if use_wal_none:
+            batch.delete(row_key, columns=None, wal=None)
+        else:
+            batch.delete(row_key, columns=None)
+
         self.assertEqual(row.deletes, 1)
         self.assertEqual(batch._mutation_count, 1)
 
+    def test_delete_bad_wal(self):
+        import warnings
+        from google.cloud.happybase.batch import _WAL_WARNING
+
+        with warnings.catch_warnings(record=True) as warned:
+            self._delete_entire_row_helper(use_wal_none=True)
+
+        self.assertEqual(len(warned), 1)
+        self.assertIn(_WAL_WARNING, str(warned[0].message))
+
+    def test_delete_entire_row(self):
+        self._delete_entire_row_helper()
+
     def test_delete_entire_row_with_ts(self):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
         batch._delete_range = object()
 
         row_key = 'row-key'
@@ -375,7 +356,7 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
     def test_delete_call_try_send(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class CallTrySend(klass):
 
@@ -399,7 +380,7 @@ class TestBatch(unittest.TestCase):
 
     def test_delete_some_columns(self):
         table = object()
-        batch = self._makeOne(table)
+        batch = self._make_one(table)
 
         row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
@@ -423,7 +404,7 @@ class TestBatch(unittest.TestCase):
                          [(fam_deleted_args, fam_deleted_kwargs)])
 
     def test_context_manager(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -438,7 +419,7 @@ class TestBatch(unittest.TestCase):
         self.assertTrue(batch._send_called)
 
     def test_context_manager_with_exception_non_transactional(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -454,7 +435,7 @@ class TestBatch(unittest.TestCase):
         self.assertTrue(batch._send_called)
 
     def test_context_manager_with_exception_transactional(self):
-        klass = self._getTargetClass()
+        klass = self._get_target_class()
 
         class BatchWithSend(_SendMixin, klass):
             pass
@@ -476,13 +457,13 @@ class TestBatch(unittest.TestCase):
 
 class Test__get_column_pairs(unittest.TestCase):
 
-    def _callFUT(self, *args, **kwargs):
+    def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.batch import _get_column_pairs
         return _get_column_pairs(*args, **kwargs)
 
     def test_it(self):
         columns = [b'cf1', u'cf2:', 'cf3::', 'cf3:name1', 'cf3:name2']
-        result = self._callFUT(columns)
+        result = self._call_fut(columns)
         expected_result = [
             ['cf1', None],
             ['cf2', None],
@@ -495,22 +476,22 @@ class Test__get_column_pairs(unittest.TestCase):
     def test_bad_column(self):
         columns = ['a:b:c']
         with self.assertRaises(ValueError):
-            self._callFUT(columns)
+            self._call_fut(columns)
 
     def test_bad_column_type(self):
         columns = [None]
         with self.assertRaises(AttributeError):
-            self._callFUT(columns)
+            self._call_fut(columns)
 
     def test_bad_columns_var(self):
         columns = None
         with self.assertRaises(TypeError):
-            self._callFUT(columns)
+            self._call_fut(columns)
 
     def test_column_family_with_require_qualifier(self):
         columns = ['a:']
         with self.assertRaises(ValueError):
-            self._callFUT(columns, require_qualifier=True)
+            self._call_fut(columns, require_qualifier=True)
 
 
 class _MockRowMap(dict):

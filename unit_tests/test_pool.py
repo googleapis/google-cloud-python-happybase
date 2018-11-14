@@ -15,15 +15,17 @@
 
 import unittest
 
+import mock
+
 
 class TestConnectionPool(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from google.cloud.happybase.pool import ConnectionPool
         return ConnectionPool
 
-    def _makeOne(self, *args, **kwargs):
-        return self._getTargetClass()(*args, **kwargs)
+    def _make_one(self, *args, **kwargs):
+        return self._get_target_class()(*args, **kwargs)
 
     def test_constructor_defaults(self):
         import six
@@ -31,10 +33,8 @@ class TestConnectionPool(unittest.TestCase):
         from google.cloud.happybase.connection import Connection
 
         size = 11
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)  # Avoid implicit environ check.
-        pool = self._makeOne(size, instance=instance)
+        instance = _Instance()  # Avoid implicit environ check.
+        pool = self._make_one(size, instance=instance)
 
         self.assertTrue(isinstance(pool._lock, type(threading.Lock())))
         self.assertTrue(isinstance(pool._thread_connections, threading.local))
@@ -46,7 +46,7 @@ class TestConnectionPool(unittest.TestCase):
         self.assertEqual(queue.maxsize, size)
         for connection in queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            self.assertTrue(connection._instance is instance_copy)
+            self.assertTrue(connection._instance is instance)
 
     def test_constructor_passes_kwargs(self):
         table_prefix = 'foo'
@@ -54,9 +54,11 @@ class TestConnectionPool(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
 
         size = 1
-        pool = self._makeOne(size, table_prefix=table_prefix,
-                             table_prefix_separator=table_prefix_separator,
-                             instance=instance)
+        pool = self._make_one(
+            size,
+            table_prefix=table_prefix,
+            table_prefix_separator=table_prefix_separator,
+            instance=instance)
 
         for connection in pool._queue.queue:
             self.assertEqual(connection.table_prefix, table_prefix)
@@ -64,9 +66,7 @@ class TestConnectionPool(unittest.TestCase):
                              table_prefix_separator)
 
     def test_constructor_ignores_autoconnect(self):
-        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
-        from google.cloud.happybase import pool as MUT
 
         class ConnectionWithOpen(Connection):
 
@@ -76,83 +76,71 @@ class TestConnectionPool(unittest.TestCase):
                 self._open_called = True
 
         # First make sure the custom Connection class does as expected.
-        instance_copy1 = _Instance()
-        instance_copy2 = _Instance()
-        instance_copy3 = _Instance()
-        instance = _Instance([instance_copy1, instance_copy2, instance_copy3])
+        instance = _Instance()
         connection = ConnectionWithOpen(autoconnect=False, instance=instance)
+        self.assertTrue(connection._instance is instance)
         self.assertFalse(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy1)
         connection = ConnectionWithOpen(autoconnect=True, instance=instance)
         self.assertTrue(connection._open_called)
-        self.assertTrue(connection._instance is instance_copy2)
 
         # Then make sure autoconnect=True is ignored in a pool.
         size = 1
-        with _Monkey(MUT, Connection=ConnectionWithOpen):
-            pool = self._makeOne(size, autoconnect=True, instance=instance)
+        with mock.patch('google.cloud.happybase.pool.Connection',
+                        ConnectionWithOpen):
+            pool = self._make_one(size, autoconnect=True, instance=instance)
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, ConnectionWithOpen))
-            self.assertTrue(connection._instance is instance_copy3)
             self.assertFalse(connection._open_called)
 
     def test_constructor_infers_instance(self):
-        from google.cloud._testing import _Monkey
         from google.cloud.happybase.connection import Connection
-        from google.cloud.happybase import pool as MUT
 
         size = 1
-        instance_copy = _Instance()
-        all_copies = [instance_copy] * size
-        instance = _Instance(all_copies)
+        instance = _Instance()
         get_instance_calls = []
 
         def mock_get_instance(timeout=None):
             get_instance_calls.append(timeout)
             return instance
 
-        with _Monkey(MUT, _get_instance=mock_get_instance):
-            pool = self._makeOne(size)
+        with mock.patch('google.cloud.happybase.pool._get_instance',
+                        mock_get_instance):
+            pool = self._make_one(size)
 
         for connection in pool._queue.queue:
             self.assertTrue(isinstance(connection, Connection))
-            # We know that the Connection() constructor will
-            # call instance.copy().
-            self.assertTrue(connection._instance is instance_copy)
+            self.assertTrue(connection._instance is instance)
 
         self.assertEqual(get_instance_calls, [None])
 
     def test_constructor_non_integer_size(self):
         size = None
         with self.assertRaises(TypeError):
-            self._makeOne(size)
+            self._make_one(size)
 
     def test_constructor_non_positive_size(self):
         size = -10
         with self.assertRaises(ValueError):
-            self._makeOne(size)
+            self._make_one(size)
         size = 0
         with self.assertRaises(ValueError):
-            self._makeOne(size)
+            self._make_one(size)
 
-    def _makeOneWithMockQueue(self, queue_return):
-        from google.cloud._testing import _Monkey
-        from google.cloud.happybase import pool as MUT
-
+    def _make_one_with_mock_queue(self, queue_return):
         # We are going to use a fake queue, so we don't want any connections
         # or instances to be created in the constructor.
         size = -1
         instance = object()
-        with _Monkey(MUT, _MIN_POOL_SIZE=size):
-            pool = self._makeOne(size, instance=instance)
+        with mock.patch('google.cloud.happybase.pool._MIN_POOL_SIZE', size):
+            pool = self._make_one(size, instance=instance)
 
         pool._queue = _Queue(queue_return)
         return pool
 
     def test__acquire_connection(self):
         queue_return = object()
-        pool = self._makeOneWithMockQueue(queue_return)
+        pool = self._make_one_with_mock_queue(queue_return)
 
         timeout = 432
         connection = pool._acquire_connection(timeout=timeout)
@@ -163,7 +151,7 @@ class TestConnectionPool(unittest.TestCase):
     def test__acquire_connection_failure(self):
         from google.cloud.happybase.pool import NoConnectionsAvailable
 
-        pool = self._makeOneWithMockQueue(None)
+        pool = self._make_one_with_mock_queue(None)
         timeout = 1027
         with self.assertRaises(NoConnectionsAvailable):
             pool._acquire_connection(timeout=timeout)
@@ -175,7 +163,7 @@ class TestConnectionPool(unittest.TestCase):
         import six
 
         queue_return = _Connection()
-        pool = self._makeOneWithMockQueue(queue_return)
+        pool = self._make_one_with_mock_queue(queue_return)
         cnxn_context = pool.connection()
         if six.PY3:  # pragma: NO COVER Python 3
             self.assertTrue(isinstance(cnxn_context,
@@ -186,7 +174,7 @@ class TestConnectionPool(unittest.TestCase):
 
     def test_connection_no_current_cnxn(self):
         queue_return = _Connection()
-        pool = self._makeOneWithMockQueue(queue_return)
+        pool = self._make_one_with_mock_queue(queue_return)
         timeout = 55
 
         self.assertFalse(hasattr(pool._thread_connections, 'current'))
@@ -202,7 +190,7 @@ class TestConnectionPool(unittest.TestCase):
     def test_connection_with_current_cnxn(self):
         current_cnxn = _Connection()
         queue_return = _Connection()
-        pool = self._makeOneWithMockQueue(queue_return)
+        pool = self._make_one_with_mock_queue(queue_return)
         pool._thread_connections.current = current_cnxn
         timeout = 8001
 
@@ -226,18 +214,9 @@ class _Connection(object):
 
 class _Instance(object):
 
-    def __init__(self, copies=()):
-        self.copies = list(copies)
+    def __init__(self):
         # Included to support Connection.__del__
         self._client = _Client()
-
-    def copy(self):
-        if self.copies:
-            result = self.copies[0]
-            self.copies[:] = self.copies[1:]
-            return result
-
-        return self
 
 
 class _Queue(object):

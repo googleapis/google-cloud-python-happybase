@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import datetime
 import operator
 import struct
 
@@ -21,6 +22,7 @@ import unittest
 from google.cloud.bigtable import client as client_mod
 from google.cloud.happybase.connection import Connection
 from google.cloud.exceptions import TooManyRequests
+from google.cloud._helpers import UTC
 
 from retry import RetryResult
 from retry import RetryErrors
@@ -32,6 +34,8 @@ _FIRST_ELT = operator.itemgetter(0)
 LOCATION_ID = 'us-central1-c'
 # NOTE: Avoid using the same name as in bigtable.py
 INSTANCE_ID = 'gcl-hb' + unique_resource_id('-')
+CLUSTER_ID = 'gcl-hb-c1' + unique_resource_id('-')
+SERVER_NODES = 3
 TABLE_NAME = 'table-name'
 ALT_TABLE_NAME = 'other-table'
 TTL_FOR_TEST = 3
@@ -50,6 +54,12 @@ COL1 = COL_FAM1 + ':qual1'
 COL2 = COL_FAM1 + ':qual2'
 COL3 = COL_FAM2 + ':qual1'
 COL4 = COL_FAM3 + ':qual3'
+
+LABEL_KEY = u'python-system'
+label_stamp = datetime.datetime.utcnow() \
+                               .replace(microsecond=0, tzinfo=UTC,) \
+                               .strftime("%Y-%m-%dt%H-%M-%S")
+LABELS = {LABEL_KEY: str(label_stamp)}
 
 
 class Config(object):
@@ -88,12 +98,16 @@ def _wait_until_complete(operation, max_attempts=5):
     return retry(operation.poll)()
 
 
+retry_429 = RetryErrors(TooManyRequests)
+
+
 def set_connection():
     client = client_mod.Client(admin=True)
-    instance = client.instance(INSTANCE_ID, LOCATION_ID)
-    operation = instance.create()
-    if not _wait_until_complete(operation):
-        raise RuntimeError('Instance creation exceed 5 seconds.')
+    instance = client.instance(INSTANCE_ID, labels=LABELS)
+    cluster = instance.cluster(CLUSTER_ID, location_id=LOCATION_ID,
+                               serve_nodes=SERVER_NODES)
+    operation = instance.create(clusters=[cluster])
+    operation.result(10)
     Config.CONNECTION = Connection(instance=instance)
 
 

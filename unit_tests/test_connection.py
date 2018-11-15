@@ -303,9 +303,11 @@ class TestConnection(unittest.TestCase):
             set([col_fam_option1, col_fam_option2, col_fam_option3]))
 
         col_fam_dict = table_instance.col_fam_dict
+        expected_cf_list = ['cf1', 'cf2', 'cf3']
+        actual_cf_list = list(col_fam_dict.keys())
+
         self.assertEqual(len(col_fam_dict), 3)
-        self.assertEqual(list(col_fam_dict.keys()),
-                         ['cf1', 'cf2', 'cf3'])
+        self.assertEqual(sorted(actual_cf_list), expected_cf_list)
 
     def test_create_table_bad_type(self):
         instance = _Instance()  # Avoid implicit environ check.

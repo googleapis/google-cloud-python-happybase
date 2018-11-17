@@ -474,7 +474,7 @@ class TestTable(unittest.TestCase):
         col_fam = 'cf1'
         qual = 'qual'
         fake_cells = object()
-        partial_row._cells = {col_fam: {qual: fake_cells}}
+        partial_row._cells = {col_fam: {qual.encode(): fake_cells}}
         column = col_fam + ':' + qual
         patch = mock.patch.multiple(
             'google.cloud.happybase.table',
@@ -924,7 +924,7 @@ class TestTable(unittest.TestCase):
         fake_timestamp = None
         commit_result = {
             col_fam: {
-                col_qual: [(packed_value, fake_timestamp)],
+                col_qual.encode(): [(packed_value, fake_timestamp)],
             }
         }
         self._counter_inc_helper(row, column, value, commit_result)
@@ -941,7 +941,7 @@ class TestTable(unittest.TestCase):
         fake_timestamp = None
         commit_result = {
             col_fam.decode('utf-8'): {
-                col_qual.decode('utf-8'): [(packed_value, fake_timestamp)],
+                col_qual: [(packed_value, fake_timestamp)],
             }
         }
         self._counter_inc_helper(row, column, value, commit_result)
@@ -986,7 +986,7 @@ class TestTable(unittest.TestCase):
         packed_value = None
         commit_result = {
             col_fam: {
-                col_qual: [
+                col_qual.encode(): [
                     (packed_value, fake_timestamp),
                     (packed_value, fake_timestamp),
                 ],

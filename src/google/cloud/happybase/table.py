@@ -289,7 +289,7 @@ class Table(object):
         # NOTE: We expect the only key in `cells` is `column_family_id`
         #       and the only key `cells[column_family_id]` is
         #       `column_qualifier`. But we don't check that this is true.
-        curr_cells = cells[column_family_id][column_qualifier]
+        curr_cells = cells[column_family_id][column_qualifier.encode()]
         return _cells_to_pairs(
             curr_cells, include_timestamp=include_timestamp)
 
@@ -582,7 +582,8 @@ class Table(object):
         # }
         modified_cells = row.commit()
         # Get the cells in the modified column,
-        column_cells = modified_cells[column_family_id][column_qualifier]
+        column_cells = modified_cells[column_family_id][
+            column_qualifier.encode()]
         # Make sure there is exactly one cell in the column.
         if len(column_cells) != 1:
             raise ValueError('Expected server to return one modified cell.')

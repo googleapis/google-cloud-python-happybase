@@ -34,7 +34,10 @@ class TestBatch(unittest.TestCase):
         return self._get_target_class()(*args, **kwargs)
 
     def test_constructor_defaults(self):
-        table = object()
+        #table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
+
         batch = self._make_one(table)
         self.assertEqual(batch._table, table)
         self.assertEqual(batch._batch_size, None)
@@ -48,7 +51,10 @@ class TestBatch(unittest.TestCase):
         from google.cloud._helpers import _datetime_from_microseconds
         from google.cloud.bigtable.row_filters import TimestampRange
 
-        table = object()
+        #table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
+
         timestamp = 144185290431
         batch_size = 42
         transaction = False  # Must be False when batch_size is non-null
@@ -72,7 +78,10 @@ class TestBatch(unittest.TestCase):
         import warnings
         from google.cloud.happybase.batch import _WAL_WARNING
 
-        table = object()
+        #table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
+
         wal = object()
         with warnings.catch_warnings(record=True) as warned:
             self._make_one(table, wal=wal)
@@ -81,7 +90,10 @@ class TestBatch(unittest.TestCase):
         self.assertIn(_WAL_WARNING, str(warned[0].message))
 
     def test_constructor_with_non_positive_batch_size(self):
-        table = object()
+        #table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
+
         batch_size = -10
         with self.assertRaises(ValueError):
             self._make_one(table, batch_size=batch_size)
@@ -90,7 +102,10 @@ class TestBatch(unittest.TestCase):
             self._make_one(table, batch_size=batch_size)
 
     def test_constructor_with_batch_size_and_transactional(self):
-        table = object()
+        #table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
+
         batch_size = 1
         transaction = True
         with self.assertRaises(TypeError):
@@ -543,7 +558,11 @@ class _MockLowLevelTable(object):
         self.kwargs = kwargs
         self.rows_made = []
         self.mock_row = None
+        #self.mutations_batcher = object()
 
     def row(self, row_key):
         self.rows_made.append(row_key)
         return self.mock_row
+    
+    def mutations_batcher(self, flush_count):
+        pass

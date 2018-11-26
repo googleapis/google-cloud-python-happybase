@@ -100,6 +100,8 @@ class Batch(object):
             self._delete_range = TimestampRange(end=next_timestamp)
 
         self._transaction = transaction
+        self._batcher = self._table._low_level_table.mutations_batcher(
+            flush_count=self._batch_size)
 
         # Internal state for tracking mutations.
         self._row_map = {}
@@ -107,10 +109,10 @@ class Batch(object):
 
     def send(self):
         """Send / commit the batch of mutations to the server."""
-        for row in self._row_map.values():
-            # commit() does nothing if row hasn't accumulated any mutations.
-            row.commit()
-
+        #for row in self._row_map.values():
+        #    # commit() does nothing if row hasn't accumulated any mutations.
+        #    row.commit()
+        self._batcher.flush()
         self._row_map.clear()
         self._mutation_count = 0
 

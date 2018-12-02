@@ -106,8 +106,8 @@ class TestBatch(unittest.TestCase):
         batch = self._make_one(table)
 
         batch._row_map = row_map = _MockRowMap()
-        row_map['row-key1'] = row1 = _MockRow()
-        row_map['row-key2'] = row2 = _MockRow()
+        row_map['row-key1'] = _MockRow()
+        row_map['row-key2'] = _MockRow()
         batch._mutation_count = 1337
 
         self.assertEqual(row_map.clear_count, 0)

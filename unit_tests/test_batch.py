@@ -34,9 +34,7 @@ class TestBatch(unittest.TestCase):
         return self._get_target_class()(*args, **kwargs)
 
     def test_constructor_defaults(self):
-        low_level_table = _MockLowLevelTable()
-        table = _MockTable(low_level_table)
-
+        table = object()
         batch = self._make_one(table)
         self.assertEqual(batch._table, table)
         self.assertEqual(batch._batch_size, None)

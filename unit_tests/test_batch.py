@@ -98,7 +98,8 @@ class TestBatch(unittest.TestCase):
                 table, batch_size=batch_size, transaction=transaction)
 
     def test_send(self):
-        table = object()
+        low_level_table = _MockLowLevelTable()
+        table = _MockTable(low_level_table)
         batch = self._make_one(table)
 
         batch._row_map = row_map = _MockRowMap()
@@ -107,16 +108,15 @@ class TestBatch(unittest.TestCase):
         batch._mutation_count = 1337
 
         self.assertEqual(row_map.clear_count, 0)
-        self.assertEqual(row1.commits, 0)
-        self.assertEqual(row2.commits, 0)
         self.assertNotEqual(batch._mutation_count, 0)
         self.assertNotEqual(row_map, {})
+        self.assertEqual(len(table._low_level_table.rows_mutate), 0)
 
         batch.send()
         self.assertEqual(row_map.clear_count, 1)
-        self.assertEqual(row1.commits, 1)
-        self.assertEqual(row2.commits, 1)
         self.assertEqual(batch._mutation_count, 0)
+        self.assertEqual(table._low_level_table.rows_mutate,
+                         [row1, row2])
         self.assertEqual(row_map, {})
 
     def test__try_send_no_batch_size(self):
@@ -514,9 +514,6 @@ class _MockRow(object):
         self.delete_cell_calls = []
         self.delete_cells_calls = []
 
-    def commit(self):
-        self.commits += 1
-
     def delete(self):
         self.deletes += 1
 
@@ -542,8 +539,12 @@ class _MockLowLevelTable(object):
         self.args = args
         self.kwargs = kwargs
         self.rows_made = []
+        self.rows_mutate = []
         self.mock_row = None
 
     def row(self, row_key):
         self.rows_made.append(row_key)
         return self.mock_row
+
+    def mutate_rows(self, rows):
+        self.rows_mutate.extend(rows)

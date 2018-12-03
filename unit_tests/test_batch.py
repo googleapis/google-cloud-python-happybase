@@ -82,7 +82,6 @@ class TestBatch(unittest.TestCase):
 
     def test_constructor_with_non_positive_batch_size(self):
         table = object()
-
         batch_size = -10
         with self.assertRaises(ValueError):
             self._make_one(table, batch_size=batch_size)
@@ -92,7 +91,6 @@ class TestBatch(unittest.TestCase):
 
     def test_constructor_with_batch_size_and_transactional(self):
         table = object()
-
         batch_size = 1
         transaction = True
         with self.assertRaises(TypeError):
@@ -102,12 +100,11 @@ class TestBatch(unittest.TestCase):
     def test_send(self):
         low_level_table = _MockLowLevelTable()
         table = _MockTable(low_level_table)
-
         batch = self._make_one(table)
 
         batch._row_map = row_map = _MockRowMap()
-        row_map['row-key1'] = _MockRow()
-        row_map['row-key2'] = _MockRow()
+        row_map['row-key1'] = row1 = _MockRow()
+        row_map['row-key2'] = row2 = _MockRow()
         batch._mutation_count = 1337
 
         self.assertEqual(row_map.clear_count, 0)
@@ -118,7 +115,8 @@ class TestBatch(unittest.TestCase):
         batch.send()
         self.assertEqual(row_map.clear_count, 1)
         self.assertEqual(batch._mutation_count, 0)
-        self.assertEqual(len(table._low_level_table.rows_mutate), 2)
+        self.assertEqual(table._low_level_table.rows_mutate,
+                         [row1, row2])
         self.assertEqual(row_map, {})
 
     def test__try_send_no_batch_size(self):

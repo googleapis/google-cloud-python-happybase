@@ -18,6 +18,7 @@
 - Announce deprecation of Python 2.7 ([#55](https://github.com/googleapis/google-cloud-python-happybase/pull/55))
 
 ### Internal / Testing Changes
+- Harden system tests. ([#53](https://github.com/googleapis/google-cloud-python-happybase/pull/53))
 - Update github issue templates ([#52](https://github.com/googleapis/google-cloud-python-happybase/pull/52))
 - Testing cleanups ([#49](https://github.com/googleapis/google-cloud-python-happybase/pull/49))
 - Fix version in setup.py

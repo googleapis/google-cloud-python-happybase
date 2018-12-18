@@ -487,7 +487,6 @@ class TestTable(unittest.TestCase):
                                  include_timestamp=include_timestamp)
 
         self.assertEqual(result, fake_result)
-
         read_row_args = (row_key,)
         read_row_kwargs = {'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_row_calls, [

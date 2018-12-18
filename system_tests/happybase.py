@@ -154,7 +154,7 @@ class BaseTableTest(unittest.TestCase):
             Config.TABLE.delete(row_key)
 
 
-class TestTable_families:
+class TestTable_families(BaseTableTest):
 
     def test_families(self):
         families = Config.TABLE.families()

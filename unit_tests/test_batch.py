@@ -217,7 +217,7 @@ class TestBatch(unittest.TestCase):
         col2_fam = 'cf2'
         col2_qual = 'qual2'
         value2 = 'value2'
-        data = {col1_fam + ':' + col1_qual: value1,
+        data = {(col1_fam + ':' + col1_qual).encode('utf-8'): value1,
                 (col2_fam + ':' + col2_qual).encode('utf-8'): value2}
 
         self.assertEqual(batch._mutation_count, 0)

@@ -257,7 +257,8 @@ class Table(object):
         :param row: Row key for the row we are reading from.
 
         :type column: str
-        :param column: Column we are reading from; of the form ``fam:col``.
+        :param column: Column we are reading from; of the form 
+                       ``b'fam:col'``.
 
         :type versions: int
         :param versions: (Optional) The maximum number of cells to return. If
@@ -285,8 +286,7 @@ class Table(object):
         cells = partial_row_data._cells
         # We know that `_filter_chain_helper` has already verified that
         # column will split as such.
-        if isinstance(column, six.binary_type):
-            column = column.decode('utf-8')
+        column = column.decode('utf-8')
         column_family_id, column_qualifier = column.split(':')
         # NOTE: We expect the only key in `cells` is `column_family_id`
         #       and the only key `cells[column_family_id]` is
@@ -585,7 +585,7 @@ class Table(object):
         modified_cells = row.commit()
         # Get the cells in the modified column,
         column_cells = modified_cells[column_family_id][
-            column_qualifier.encode()]
+            column_qualifier.encode('utf-8')]
         # Make sure there is exactly one cell in the column.
         if len(column_cells) != 1:
             raise ValueError('Expected server to return one modified cell.')

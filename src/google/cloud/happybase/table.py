@@ -285,11 +285,13 @@ class Table(object):
         cells = partial_row_data._cells
         # We know that `_filter_chain_helper` has already verified that
         # column will split as such.
+        if isinstance(column, six.binary_type):
+            column = column.decode('utf-8')
         column_family_id, column_qualifier = column.split(':')
         # NOTE: We expect the only key in `cells` is `column_family_id`
         #       and the only key `cells[column_family_id]` is
         #       `column_qualifier`. But we don't check that this is true.
-        curr_cells = cells[column_family_id][column_qualifier.encode()]
+        curr_cells = cells[column_family_id][column_qualifier.encode('utf-8')]
         return _cells_to_pairs(
             curr_cells, include_timestamp=include_timestamp)
 

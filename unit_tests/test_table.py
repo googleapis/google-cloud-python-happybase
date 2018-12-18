@@ -474,8 +474,8 @@ class TestTable(unittest.TestCase):
         col_fam = 'cf1'
         qual = 'qual'
         fake_cells = object()
-        partial_row._cells = {col_fam: {qual.encode(): fake_cells}}
-        column = col_fam + ':' + qual
+        partial_row._cells = {col_fam: {qual.encode('utf-8'): fake_cells}}
+        column = (col_fam + ':' + qual).encode('utf-8')
         patch = mock.patch.multiple(
             'google.cloud.happybase.table',
             _filter_chain_helper=mock_filter_chain_helper,

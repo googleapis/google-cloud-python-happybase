@@ -308,12 +308,9 @@ class Connection(object):
         # Create table instance and then make API calls.
         name = self._table_name(name)
         low_level_table = _LowLevelTable(name, self._instance)
-        column_families = (
-            low_level_table.column_family(column_family_name, gc_rule=gc_rule)
-            for column_family_name, gc_rule in six.iteritems(gc_rule_dict)
-        )
+
         try:
-            low_level_table.create(column_families=column_families)
+            low_level_table.create(column_families=gc_rule_dict)
         except face.NetworkError as network_err:
             if network_err.code == interfaces.StatusCode.ALREADY_EXISTS:
                 raise AlreadyExists(name)

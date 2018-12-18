@@ -109,6 +109,7 @@ class Batch(object):
         """Send / commit the batch of mutations to the server."""
         table = self._table._low_level_table
         table.mutate_rows(self._row_map.values())
+
         self._row_map.clear()
         self._mutation_count = 0
 
@@ -143,8 +144,8 @@ class Batch(object):
 
         :type data: dict
         :param data: Dictionary containing the data to be inserted. The keys
-                     are columns names (of the form ``fam:col``) and the values
-                     are strings (bytes) to be stored in those columns.
+                     are columns names (of the form ``b'fam:col'``) and the
+                     values are strings (bytes) to be stored in those columns.
 
         :type wal: object
         :param wal: Unused parameter (to over-ride the default on the
@@ -160,8 +161,10 @@ class Batch(object):
         # to add mutations.
         column_pairs = _get_column_pairs(six.iterkeys(data),
                                          require_qualifier=True)
+
         for column_family_id, column_qualifier in column_pairs:
-            value = data[column_family_id + ':' + column_qualifier]
+            value = data[(column_family_id + ':' +
+                          column_qualifier).encode('utf-8')]
             row_object.set_cell(column_family_id, column_qualifier,
                                 value, timestamp=self._timestamp)
 

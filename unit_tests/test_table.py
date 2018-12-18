@@ -474,8 +474,8 @@ class TestTable(unittest.TestCase):
         col_fam = 'cf1'
         qual = 'qual'
         fake_cells = object()
-        partial_row._cells = {col_fam: {qual: fake_cells}}
-        column = col_fam + ':' + qual
+        partial_row._cells = {col_fam: {qual.encode('utf-8'): fake_cells}}
+        column = (col_fam + ':' + qual).encode('utf-8')
         patch = mock.patch.multiple(
             'google.cloud.happybase.table',
             _filter_chain_helper=mock_filter_chain_helper,
@@ -487,7 +487,6 @@ class TestTable(unittest.TestCase):
                                  include_timestamp=include_timestamp)
 
         self.assertEqual(result, fake_result)
-
         read_row_args = (row_key,)
         read_row_kwargs = {'filter_': fake_filter}
         self.assertEqual(table._low_level_table.read_row_calls, [
@@ -924,7 +923,7 @@ class TestTable(unittest.TestCase):
         fake_timestamp = None
         commit_result = {
             col_fam: {
-                col_qual: [(packed_value, fake_timestamp)],
+                col_qual.encode(): [(packed_value, fake_timestamp)],
             }
         }
         self._counter_inc_helper(row, column, value, commit_result)
@@ -941,7 +940,7 @@ class TestTable(unittest.TestCase):
         fake_timestamp = None
         commit_result = {
             col_fam.decode('utf-8'): {
-                col_qual.decode('utf-8'): [(packed_value, fake_timestamp)],
+                col_qual: [(packed_value, fake_timestamp)],
             }
         }
         self._counter_inc_helper(row, column, value, commit_result)
@@ -986,7 +985,7 @@ class TestTable(unittest.TestCase):
         packed_value = None
         commit_result = {
             col_fam: {
-                col_qual: [
+                col_qual.encode(): [
                     (packed_value, fake_timestamp),
                     (packed_value, fake_timestamp),
                 ],

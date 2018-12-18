@@ -257,7 +257,7 @@ class Table(object):
         :param row: Row key for the row we are reading from.
 
         :type column: str
-        :param column: Column we are reading from; of the form 
+        :param column: Column we are reading from; of the form
                        ``b'fam:col'``.
 
         :type versions: int

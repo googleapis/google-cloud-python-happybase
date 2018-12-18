@@ -5,7 +5,7 @@
 [1]: https://pypi.org/project/google-cloud-happybase/#history
 
 
-## 2018.12.17
+## 0.32.0
 
 12-17-2018 17:20 PST
 

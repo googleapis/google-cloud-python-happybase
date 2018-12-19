@@ -11,8 +11,9 @@
 
 
 ### Implementation Changes
-- Use 'Table.mutate_rows()' rather than 'Row.commit()' in 'Batch.send()'. ([#54](https://github.com/googleapis/google-cloud-python-happybase/pull/54))
-- Remove 'instance.copy()' and 'timeout' parameter from 'Connection' constructor. ([#50](https://github.com/googleapis/google-cloud-python-happybase/pull/50))
+- Pool: fix call to `_get_instance`. ([#57](https://github.com/googleapis/google-cloud-python-happybase/pull/57))
+- Use `Table.mutate_rows()` rather than `Row.commit()` in `Batch.send()`. ([#54](https://github.com/googleapis/google-cloud-python-happybase/pull/54))
+- Remove `instance.copy()` and `timeout` parameter from `Connection` constructor. ([#50](https://github.com/googleapis/google-cloud-python-happybase/pull/50))
 
 ### Documentation
 - Announce deprecation of Python 2.7 ([#55](https://github.com/googleapis/google-cloud-python-happybase/pull/55))
@@ -21,7 +22,7 @@
 - Harden system tests. ([#53](https://github.com/googleapis/google-cloud-python-happybase/pull/53))
 - Update github issue templates ([#52](https://github.com/googleapis/google-cloud-python-happybase/pull/52))
 - Testing cleanups ([#49](https://github.com/googleapis/google-cloud-python-happybase/pull/49))
-- Fix version in setup.py
+- Fix version in `setup.py`
 
 ## 0.31.0 (2018-10-05)
 

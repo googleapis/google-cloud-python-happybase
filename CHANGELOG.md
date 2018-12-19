@@ -28,7 +28,7 @@
 
 ### Dependencies
 
-- Update to use `google.cloud.bigtable 0.31.0`
+- Update to use `google.cloud.bigtable >= 0.31.0`
 
 
 ## 0.30.2 (2018-10-05)

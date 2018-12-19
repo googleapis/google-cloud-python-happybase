@@ -95,14 +95,13 @@ class TestConnectionPool(unittest.TestCase):
 
     def test_constructor_infers_instance(self):
         from google.cloud.happybase.connection import Connection
+        from google.cloud.happybase.connection import _get_instance
 
         size = 1
         instance = _Instance()
-        get_instance_calls = []
 
-        def mock_get_instance(timeout=None):
-            get_instance_calls.append(timeout)
-            return instance
+        mock_get_instance = mock.create_autospec(_get_instance)
+        mock_get_instance.return_value = instance
 
         with mock.patch('google.cloud.happybase.pool._get_instance',
                         mock_get_instance):
@@ -112,7 +111,7 @@ class TestConnectionPool(unittest.TestCase):
             self.assertTrue(isinstance(connection, Connection))
             self.assertTrue(connection._instance is instance)
 
-        self.assertEqual(get_instance_calls, [None])
+        mock_get_instance.assert_called_once_with()
 
     def test_constructor_non_integer_size(self):
         size = None

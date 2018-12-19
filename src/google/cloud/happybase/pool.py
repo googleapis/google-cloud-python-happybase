@@ -76,8 +76,7 @@ class ConnectionPool(object):
         connection_kwargs = kwargs
         connection_kwargs['autoconnect'] = False
         if 'instance' not in connection_kwargs:
-            connection_kwargs['instance'] = _get_instance(
-                timeout=kwargs.get('timeout'))
+            connection_kwargs['instance'] = _get_instance()
 
         for _ in six.moves.range(size):
             connection = Connection(**connection_kwargs)

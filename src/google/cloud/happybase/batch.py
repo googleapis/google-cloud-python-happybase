@@ -108,7 +108,7 @@ class Batch(object):
     def send(self):
         """Send / commit the batch of mutations to the server."""
         table = self._table._low_level_table
-        table.mutate_rows(self._row_map.values())
+        table.mutate_rows(list(self._row_map.values()))
 
         self._row_map.clear()
         self._mutation_count = 0

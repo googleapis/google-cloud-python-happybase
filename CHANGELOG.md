@@ -11,7 +11,7 @@
 
 
 ### Implementation Changes
-- Table.put: Fix dict_values object does not support indexing ([#59](https://github.com/googleapis/google-cloud-python-happybase/pull/59))
+- Table.send: fix Python3 compatibility. ([#59](https://github.com/googleapis/google-cloud-python-happybase/pull/59))
 
 ## 0.32.0
 

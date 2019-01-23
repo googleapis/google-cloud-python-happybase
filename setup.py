@@ -59,7 +59,7 @@ SETUP_BASE.pop('url')
 
 setup(
     name='google-cloud-happybase',
-    version='0.32.0',
+    version='0.32.1',
     description='Client library for Google Cloud Bigtable: HappyBase layer',
     long_description=README,
     url='https://github.com/googleapis/google-cloud-python-happybase',

@@ -5,6 +5,14 @@
 [1]: https://pypi.org/project/google-cloud-happybase/#history
 
 
+## 0.32.1
+
+01-23-2019 13:08 PST
+
+
+### Implementation Changes
+- Table.put: Fix dict_values object does not support indexing ([#59](https://github.com/googleapis/google-cloud-python-happybase/pull/59))
+
 ## 0.32.0
 
 12-17-2018 17:20 PST

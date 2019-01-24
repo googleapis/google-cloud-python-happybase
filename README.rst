@@ -64,10 +64,6 @@ MIT - See `LICENSE`_ for more information.
 
 .. _LICENSE: https://github.com/googleapis/google-cloud-python-happybase/blob/master/LICENSE
 
-.. |build| image:: https://travis-ci.org/googleapis/google-cloud-python-happybase.svg?branch=master
-   :target: https://travis-ci.org/googleapis/google-cloud-python-happybase
-.. |coverage| image:: https://coveralls.io/repos/googleapis/google-cloud-python-happybase/badge.png?branch=master
-   :target: https://coveralls.io/r/googleapis/google-cloud-python-happybase?branch=master
 .. |pypi| image:: https://img.shields.io/pypi/v/google-cloud-happybase.svg
    :target: https://pypi.org/project/google-cloud-happybase/
 .. |versions| image:: https://img.shields.io/pypi/pyversions/google-cloud-happybase.svg

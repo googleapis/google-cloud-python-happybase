@@ -8,13 +8,6 @@ def cover(session):
     session.run('py.test', '--quiet', '--cov=google.cloud.happybase', '--cov=unit_tests', '--cov-config', '.coveragerc', 'unit_tests')
 
 @nox.session(python='2.7')
-def coveralls(session):
-    session.install('pytest', 'mock', 'coverage', 'pytest-cov', 'coveralls')
-    session.install('.')
-    session.run('py.test', '--quiet', '--cov=google.cloud.happybase', '--cov=unit_tests', '--cov-config', '.coveragerc', 'unit_tests')
-    session.run('coveralls')
-
-@nox.session(python='2.7')
 def docs(session):
     session.install('pytest', 'mock', 'Sphinx', 'sphinx_rtd_theme')
     session.install('.')
@@ -22,39 +15,43 @@ def docs(session):
     session.run('sphinx-build', '-W', '-b', 'html', '-d', 'docs/_build/doctrees', 'docs', 'docs/_build/html')
     session.run('python', 'scripts/verify_included_modules.py', '--build-root', '_build')
 
-@nox.session(python='2.7')
+@nox.session(python="3.7")
 def lint(session):
-    session.install('pytest', 'mock', 'pycodestyle', 'pylint >= 1.6.4')
-    session.install('.')
-    session.run('python', 'scripts/pycodestyle_on_repo.py')
-    session.run('python', 'scripts/run_pylint.py')
+    """Run linters.
+    Returns a failure if the linters find linting errors or sufficiently
+    serious code quality issues.
+    """
+    session.install("flake8", "black")
+    session.run(
+        "black",
+        "--check",
+        "src",
+        "docs",
+        "unit_tests",
+        "system_tests"
+    )
+    session.run("flake8", "google", "tests")
 
-@nox.session(python='2.7')
-def py27(session):
+@nox.session(python='3.6')
+def blacken(session):
+    session.install("black")
+    session.run(
+        "black",
+        "noxfile.py"
+        "src",
+        "docs",
+        "unit_tests",
+        "system_tests",
+    )
+
+@nox.session(python=['2.7', '3.4', '3.5'])
+def tests(session):
     session.install('pytest', 'mock')
     session.install('.')
     session.run('py.test', '--quiet', 'unit_tests')
 
-@nox.session(python='3.4')
-def py34(session):
-    session.install('pytest', 'mock')
-    session.install('.')
-    session.run('py.test', '--quiet', 'unit_tests')
-
-@nox.session(python='3.5')
-def py35(session):
-    session.install('pytest', 'mock')
-    session.install('.')
-    session.run('py.test', '--quiet', 'unit_tests')
-
-@nox.session(python='2.7')
+@nox.session(python=['2.7', '3.4'])
 def system_tests(session):
-    session.install('pytest', 'mock')
-    session.install('.')
-    session.run('python', 'system_tests/attempt_system_tests.py')
-
-@nox.session(python='3.4')
-def system_tests3(session):
     session.install('pytest', 'mock')
     session.install('.')
     session.run('python', 'system_tests/attempt_system_tests.py')

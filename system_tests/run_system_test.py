@@ -20,7 +20,9 @@ import happybase
 import system_test_utils
 
 
-TEST_MODULES = {"happybase": happybase}
+TEST_MODULES = {
+    'happybase': happybase,
+}
 
 
 class FailedSystemTestModule(Exception):
@@ -29,21 +31,14 @@ class FailedSystemTestModule(Exception):
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="Google Cloud test runner against actual project."
-    )
+        description='Google Cloud test runner against actual project.')
+    parser.add_argument('--package', dest='package',
+                        choices=TEST_MODULES.keys(),
+                        default='datastore', help='Package to be tested.')
     parser.add_argument(
-        "--package",
-        dest="package",
-        choices=TEST_MODULES.keys(),
-        default="datastore",
-        help="Package to be tested.",
-    )
-    parser.add_argument(
-        "--ignore-requirements",
-        dest="ignore_requirements",
-        action="store_true",
-        help="Ignore the credentials requirement for the test.",
-    )
+        '--ignore-requirements',
+        dest='ignore_requirements', action='store_true',
+        help='Ignore the credentials requirement for the test.')
     return parser
 
 
@@ -68,10 +63,11 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
     try:
-        run_module_tests(args.package, ignore_requirements=args.ignore_requirements)
+        run_module_tests(args.package,
+                         ignore_requirements=args.ignore_requirements)
     except FailedSystemTestModule:
         sys.exit(1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -41,8 +41,8 @@ from google.cloud.happybase.batch import _WAL_SENTINEL
 from google.cloud.happybase.batch import Batch
 
 
-_PACK_I64 = struct.Struct(">q").pack
-_UNPACK_I64 = struct.Struct(">q").unpack
+_PACK_I64 = struct.Struct('>q').pack
+_UNPACK_I64 = struct.Struct('>q').unpack
 _SIMPLE_GC_RULES = (MaxAgeGCRule, MaxVersionsGCRule)
 
 
@@ -65,14 +65,10 @@ def make_row(cell_map, include_timestamp):
     :raises: :class:`NotImplementedError <exceptions.NotImplementedError>`
              always
     """
-    raise NotImplementedError(
-        "The Cloud Bigtable API output is not the same "
-        "as the output from the Thrift server, so this "
-        "helper can not be implemented.",
-        "Called with",
-        cell_map,
-        include_timestamp,
-    )
+    raise NotImplementedError('The Cloud Bigtable API output is not the same '
+                              'as the output from the Thrift server, so this '
+                              'helper can not be implemented.', 'Called with',
+                              cell_map, include_timestamp)
 
 
 def make_ordered_row(sorted_columns, include_timestamp):
@@ -93,14 +89,10 @@ def make_ordered_row(sorted_columns, include_timestamp):
     :raises: :class:`NotImplementedError <exceptions.NotImplementedError>`
              always
     """
-    raise NotImplementedError(
-        "The Cloud Bigtable API output is not the same "
-        "as the output from the Thrift server, so this "
-        "helper can not be implemented.",
-        "Called with",
-        sorted_columns,
-        include_timestamp,
-    )
+    raise NotImplementedError('The Cloud Bigtable API output is not the same '
+                              'as the output from the Thrift server, so this '
+                              'helper can not be implemented.', 'Called with',
+                              sorted_columns, include_timestamp)
 
 
 class Table(object):
@@ -122,10 +114,11 @@ class Table(object):
         self.connection = connection
         self._low_level_table = None
         if self.connection is not None:
-            self._low_level_table = _LowLevelTable(self.name, self.connection._instance)
+            self._low_level_table = _LowLevelTable(self.name,
+                                                   self.connection._instance)
 
     def __repr__(self):
-        return "<table.Table name=%r>" % (self.name,)
+        return '<table.Table name=%r>' % (self.name,)
 
     def families(self):
         """Retrieve the column families for this table.
@@ -152,10 +145,8 @@ class Table(object):
         :raises: :class:`NotImplementedError <exceptions.NotImplementedError>`
                  always
         """
-        raise NotImplementedError(
-            "The Cloud Bigtable API does not have a "
-            "concept of splitting a table into regions."
-        )
+        raise NotImplementedError('The Cloud Bigtable API does not have a '
+                                  'concept of splitting a table into regions.')
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):
         """Retrieve a single row of data.
@@ -191,17 +182,19 @@ class Table(object):
         if columns is not None:
             filters.append(_columns_filter_helper(columns))
         # versions == 1 since we only want the latest.
-        filter_ = _filter_chain_helper(versions=1, timestamp=timestamp, filters=filters)
+        filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
+                                       filters=filters)
 
-        partial_row_data = self._low_level_table.read_row(row, filter_=filter_)
+        partial_row_data = self._low_level_table.read_row(
+            row, filter_=filter_)
         if partial_row_data is None:
             return {}
 
-        return _partial_row_to_dict(
-            partial_row_data, include_timestamp=include_timestamp
-        )
+        return _partial_row_to_dict(partial_row_data,
+                                    include_timestamp=include_timestamp)
 
-    def rows(self, rows, columns=None, timestamp=None, include_timestamp=False):
+    def rows(self, rows, columns=None, timestamp=None,
+             include_timestamp=False):
         """Retrieve multiple rows of data.
 
         All optional arguments behave the same in this method as they do in
@@ -240,10 +233,11 @@ class Table(object):
 
         row_set = _get_row_set_from_rows(rows)
         # versions == 1 since we only want the latest.
-        filter_ = _filter_chain_helper(versions=1, timestamp=timestamp, filters=filters)
+        filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
+                                       filters=filters)
         rows_generator = self._low_level_table.read_rows(
-            row_set=row_set, filter_=filter_
-        )
+            row_set=row_set,
+            filter_=filter_)
         # NOTE: We could use max_loops = 1000 or some similar value to ensure
         #       that the stream isn't open too long.
 
@@ -251,14 +245,12 @@ class Table(object):
         for rowdata in rows_generator:
             curr_row_data = rowdata
             curr_row_dict = _partial_row_to_dict(
-                curr_row_data, include_timestamp=include_timestamp
-            )
+                curr_row_data, include_timestamp=include_timestamp)
             result.append((curr_row_data.row_key, curr_row_dict))
         return result
 
-    def cells(
-        self, row, column, versions=None, timestamp=None, include_timestamp=False
-    ):
+    def cells(self, row, column, versions=None, timestamp=None,
+              include_timestamp=False):
         """Retrieve multiple versions of a single cell from the table.
 
         :type row: str
@@ -285,9 +277,8 @@ class Table(object):
         :returns: List of values in the cell (with timestamps if
                   ``include_timestamp`` is :data:`True`).
         """
-        filter_ = _filter_chain_helper(
-            column=column, versions=versions, timestamp=timestamp
-        )
+        filter_ = _filter_chain_helper(column=column, versions=versions,
+                                       timestamp=timestamp)
         partial_row_data = self._low_level_table.read_row(row, filter_=filter_)
         if partial_row_data is None:
             return []
@@ -295,25 +286,18 @@ class Table(object):
         cells = partial_row_data._cells
         # We know that `_filter_chain_helper` has already verified that
         # column will split as such.
-        column = column.decode("utf-8")
-        column_family_id, column_qualifier = column.split(":")
+        column = column.decode('utf-8')
+        column_family_id, column_qualifier = column.split(':')
         # NOTE: We expect the only key in `cells` is `column_family_id`
         #       and the only key `cells[column_family_id]` is
         #       `column_qualifier`. But we don't check that this is true.
-        curr_cells = cells[column_family_id][column_qualifier.encode("utf-8")]
-        return _cells_to_pairs(curr_cells, include_timestamp=include_timestamp)
+        curr_cells = cells[column_family_id][column_qualifier.encode('utf-8')]
+        return _cells_to_pairs(
+            curr_cells, include_timestamp=include_timestamp)
 
-    def scan(
-        self,
-        row_start=None,
-        row_stop=None,
-        row_prefix=None,
-        columns=None,
-        timestamp=None,
-        include_timestamp=False,
-        limit=None,
-        **kwargs
-    ):
+    def scan(self, row_start=None, row_stop=None, row_prefix=None,
+             columns=None, timestamp=None,
+             include_timestamp=False, limit=None, **kwargs):
         """Create a scanner for data in this table.
 
         This method returns a generator that can be used for looping over the
@@ -398,21 +382,18 @@ class Table(object):
                  ``filter`` is used.
         """
         row_start, row_stop, filter_chain = _scan_filter_helper(
-            row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs
-        )
+            row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs)
 
         row_set = _get_row_set_object(row_start, row_stop)
 
         rows_generator = self._low_level_table.read_rows(
-            row_set=row_set, limit=limit, filter_=filter_chain
-        )
+            row_set=row_set, limit=limit, filter_=filter_chain)
 
         for rowdata in rows_generator:
             curr_row_data = rowdata
             # NOTE: We expect len(rows_dict) == 0, but don't check it.
             curr_row_dict = _partial_row_to_dict(
-                curr_row_data, include_timestamp=include_timestamp
-            )
+                curr_row_data, include_timestamp=include_timestamp)
             yield (curr_row_data.row_key, curr_row_dict)
 
     def put(self, row, data, timestamp=None, wal=_WAL_SENTINEL):
@@ -482,9 +463,8 @@ class Table(object):
         with self.batch(timestamp=timestamp, wal=wal) as batch:
             batch.delete(row, columns)
 
-    def batch(
-        self, timestamp=None, batch_size=None, transaction=False, wal=_WAL_SENTINEL
-    ):
+    def batch(self, timestamp=None, batch_size=None, transaction=False,
+              wal=_WAL_SENTINEL):
         """Create a new batch operation for this table.
 
         This method returns a new
@@ -517,13 +497,8 @@ class Table(object):
         :rtype: :class:`~google.cloud.bigtable.happybase.batch.Batch`
         :returns: A batch bound to this table.
         """
-        return Batch(
-            self,
-            timestamp=timestamp,
-            batch_size=batch_size,
-            transaction=transaction,
-            wal=wal,
-        )
+        return Batch(self, timestamp=timestamp, batch_size=batch_size,
+                     transaction=transaction, wal=wal)
 
     def counter_get(self, row, column):
         """Retrieve the current value of a counter column.
@@ -594,8 +569,8 @@ class Table(object):
         """
         row = self._low_level_table.row(row, append=True)
         if isinstance(column, six.binary_type):
-            column = column.decode("utf-8")
-        column_family_id, column_qualifier = column.split(":")
+            column = column.decode('utf-8')
+        column_family_id, column_qualifier = column.split(':')
         row.increment_cell_value(column_family_id, column_qualifier, value)
         # See AppendRow.commit() will return a dictionary:
         # {
@@ -610,11 +585,10 @@ class Table(object):
         modified_cells = row.commit()
         # Get the cells in the modified column,
         column_cells = modified_cells[column_family_id][
-            column_qualifier.encode("utf-8")
-        ]
+            column_qualifier.encode('utf-8')]
         # Make sure there is exactly one cell in the column.
         if len(column_cells) != 1:
-            raise ValueError("Expected server to return one modified cell.")
+            raise ValueError('Expected server to return one modified cell.')
         column_cell = column_cells[0]
         # Get the bytes value from the column and convert it to an integer.
         bytes_value = column_cell[0]
@@ -677,15 +651,14 @@ def _gc_rule_to_dict(gc_rule):
     if gc_rule is None:
         result = {}
     elif isinstance(gc_rule, MaxAgeGCRule):
-        result = {"time_to_live": gc_rule.max_age.total_seconds()}
+        result = {'time_to_live': gc_rule.max_age.total_seconds()}
     elif isinstance(gc_rule, MaxVersionsGCRule):
-        result = {"max_versions": gc_rule.max_num_versions}
+        result = {'max_versions': gc_rule.max_num_versions}
     elif isinstance(gc_rule, GCRuleIntersection):
         if len(gc_rule.rules) == 2:
             rule1, rule2 = gc_rule.rules
-            if isinstance(rule1, _SIMPLE_GC_RULES) and isinstance(
-                rule2, _SIMPLE_GC_RULES
-            ):
+            if (isinstance(rule1, _SIMPLE_GC_RULES) and
+                    isinstance(rule2, _SIMPLE_GC_RULES)):
                 rule1 = _gc_rule_to_dict(rule1)
                 rule2 = _gc_rule_to_dict(rule2)
                 key1, = rule1.keys()
@@ -709,7 +682,7 @@ def _next_char(str_val, index):
               in ``str_val``.
     """
     ord_val = six.indexbytes(str_val, index)
-    return _to_bytes(chr(ord_val + 1), encoding="latin-1")
+    return _to_bytes(chr(ord_val + 1), encoding='latin-1')
 
 
 def _string_successor(str_val):
@@ -730,18 +703,18 @@ def _string_successor(str_val):
     :rtype: str
     :returns: The next string in lexical order after ``str_val``.
     """
-    str_val = _to_bytes(str_val, encoding="latin-1")
-    if str_val == b"":
+    str_val = _to_bytes(str_val, encoding='latin-1')
+    if str_val == b'':
         return str_val
 
     index = len(str_val) - 1
     while index >= 0:
-        if six.indexbytes(str_val, index) != 0xFF:
+        if six.indexbytes(str_val, index) != 0xff:
             break
         index -= 1
 
     if index == -1:
-        return b""
+        return b''
 
     return str_val[:index] + _next_char(str_val, index)
 
@@ -843,14 +816,16 @@ def _partial_row_to_dict(partial_row_data, include_timestamp=False):
     """
     result = {}
     for column, cells in six.iteritems(partial_row_data.to_dict()):
-        cell_vals = _cells_to_pairs(cells, include_timestamp=include_timestamp)
+        cell_vals = _cells_to_pairs(cells,
+                                    include_timestamp=include_timestamp)
         # NOTE: We assume there is exactly 1 version since we used that in
         #       our filter, but we don't check this.
         result[column] = cell_vals[0]
     return result
 
 
-def _filter_chain_helper(column=None, versions=None, timestamp=None, filters=None):
+def _filter_chain_helper(column=None, versions=None, timestamp=None,
+                         filters=None):
     """Create filter chain to limit a results set.
 
     :type column: str
@@ -879,8 +854,8 @@ def _filter_chain_helper(column=None, versions=None, timestamp=None, filters=Non
 
     if column is not None:
         if isinstance(column, six.binary_type):
-            column = column.decode("utf-8")
-        column_family_id, column_qualifier = column.split(":")
+            column = column.decode('utf-8')
+        column_family_id, column_qualifier = column.split(':')
         fam_filter = FamilyNameRegexFilter(column_family_id)
         qual_filter = ColumnQualifierRegexFilter(column_qualifier)
         filters.extend([fam_filter, qual_filter])
@@ -892,50 +867,44 @@ def _filter_chain_helper(column=None, versions=None, timestamp=None, filters=Non
 
     num_filters = len(filters)
     if num_filters == 0:
-        raise ValueError("Must have at least one filter.")
+        raise ValueError('Must have at least one filter.')
     elif num_filters == 1:
         return filters[0]
     else:
         return RowFilterChain(filters=filters)
 
 
-def _scan_filter_helper(
-    row_start, row_stop, row_prefix, columns, timestamp, limit, kwargs
-):
+def _scan_filter_helper(row_start, row_stop, row_prefix, columns,
+                        timestamp, limit, kwargs):
     """Helper for :meth:`scan`:  build up a filter chain."""
-    filter_ = kwargs.pop("filter", None)
+    filter_ = kwargs.pop('filter', None)
     legacy_args = []
-    for kw_name in ("batch_size", "scan_batching", "sorted_columns"):
+    for kw_name in ('batch_size', 'scan_batching', 'sorted_columns'):
         if kw_name in kwargs:
             legacy_args.append(kw_name)
             kwargs.pop(kw_name)
     if legacy_args:
-        legacy_args = ", ".join(legacy_args)
-        message = (
-            "The HappyBase legacy arguments %s were used. These "
-            "arguments are unused by google-cloud." % (legacy_args,)
-        )
+        legacy_args = ', '.join(legacy_args)
+        message = ('The HappyBase legacy arguments %s were used. These '
+                   'arguments are unused by google-cloud.' % (legacy_args,))
         warnings.warn(message)
     if kwargs:
-        raise TypeError("Received unexpected arguments", kwargs.keys())
+        raise TypeError('Received unexpected arguments', kwargs.keys())
 
     if limit is not None and limit < 1:
-        raise ValueError("limit must be positive")
+        raise ValueError('limit must be positive')
     if row_prefix is not None:
         if row_start is not None or row_stop is not None:
-            raise ValueError(
-                "row_prefix cannot be combined with " "row_start or row_stop"
-            )
+            raise ValueError('row_prefix cannot be combined with '
+                             'row_start or row_stop')
         row_start = row_prefix
         row_stop = _string_successor(row_prefix)
 
     filters = []
     if isinstance(filter_, six.string_types):
-        raise TypeError(
-            "Specifying filters as a string is not supported "
-            "by Cloud Bigtable. Use a "
-            "google.cloud.bigtable.row.RowFilter instead."
-        )
+        raise TypeError('Specifying filters as a string is not supported '
+                        'by Cloud Bigtable. Use a '
+                        'google.cloud.bigtable.row.RowFilter instead.')
     elif filter_ is not None:
         filters.append(filter_)
 
@@ -943,7 +912,8 @@ def _scan_filter_helper(
         filters.append(_columns_filter_helper(columns))
 
     # versions == 1 since we only want the latest.
-    filter_ = _filter_chain_helper(versions=1, timestamp=timestamp, filters=filters)
+    filter_ = _filter_chain_helper(versions=1, timestamp=timestamp,
+                                   filters=filters)
     return row_start, row_stop, filter_
 
 
@@ -967,14 +937,15 @@ def _columns_filter_helper(columns):
         fam_filter = FamilyNameRegexFilter(column_family_id)
         if column_qualifier is not None:
             qual_filter = ColumnQualifierRegexFilter(column_qualifier)
-            combined_filter = RowFilterChain(filters=[fam_filter, qual_filter])
+            combined_filter = RowFilterChain(
+                filters=[fam_filter, qual_filter])
             filters.append(combined_filter)
         else:
             filters.append(fam_filter)
 
     num_filters = len(filters)
     if num_filters == 0:
-        raise ValueError("Must have at least one filter.")
+        raise ValueError('Must have at least one filter.')
     elif num_filters == 1:
         return filters[0]
     else:
@@ -985,7 +956,8 @@ def _get_row_set_object(row_start, row_stop):
     """Return a RowSet object for the given row_start and row_stop
     """
     row_set = RowSet()
-    row_set.add_row_range_from_keys(start_key=row_start, end_key=row_stop)
+    row_set.add_row_range_from_keys(start_key=row_start,
+                                    end_key=row_stop)
     return row_set
 
 

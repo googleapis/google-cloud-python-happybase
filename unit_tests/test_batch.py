@@ -25,9 +25,9 @@ class _SendMixin(object):
 
 
 class TestBatch(unittest.TestCase):
+
     def _get_target_class(self):
         from google.cloud.happybase.batch import Batch
-
         return Batch
 
     def _make_one(self, *args, **kwargs):
@@ -54,13 +54,12 @@ class TestBatch(unittest.TestCase):
         transaction = False  # Must be False when batch_size is non-null
 
         batch = self._make_one(
-            table, timestamp=timestamp, batch_size=batch_size, transaction=transaction
-        )
+            table, timestamp=timestamp,
+            batch_size=batch_size, transaction=transaction)
         self.assertEqual(batch._table, table)
         self.assertEqual(batch._batch_size, batch_size)
-        self.assertEqual(
-            batch._timestamp, _datetime_from_microseconds(1000 * timestamp)
-        )
+        self.assertEqual(batch._timestamp,
+                         _datetime_from_microseconds(1000 * timestamp))
 
         next_timestamp = _datetime_from_microseconds(1000 * (timestamp + 1))
         time_range = TimestampRange(end=next_timestamp)
@@ -95,7 +94,8 @@ class TestBatch(unittest.TestCase):
         batch_size = 1
         transaction = True
         with self.assertRaises(TypeError):
-            self._make_one(table, batch_size=batch_size, transaction=transaction)
+            self._make_one(
+                table, batch_size=batch_size, transaction=transaction)
 
     def test_send(self):
         low_level_table = _MockLowLevelTable()
@@ -103,8 +103,8 @@ class TestBatch(unittest.TestCase):
         batch = self._make_one(table)
 
         batch._row_map = row_map = _MockRowMap()
-        row_map["row-key1"] = row1 = _MockRow()
-        row_map["row-key2"] = row2 = _MockRow()
+        row_map['row-key1'] = row1 = _MockRow()
+        row_map['row-key2'] = row2 = _MockRow()
         batch._mutation_count = 1337
 
         self.assertEqual(row_map.clear_count, 0)
@@ -174,7 +174,7 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = self._make_one(table)
 
-        row_key = "row-key"
+        row_key = 'row-key'
         row_obj = object()
         batch._row_map[row_key] = row_obj
         result = batch._get_row(row_key)
@@ -193,7 +193,7 @@ class TestBatch(unittest.TestCase):
         low_level_table.mock_row = mock_row = object()
 
         # Actually get the row (which creates a row via a low-level table).
-        row_key = "row-key"
+        row_key = 'row-key'
         result = batch._get_row(row_key)
         self.assertEqual(result, mock_row)
 
@@ -208,19 +208,17 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = self._make_one(table)
         batch._timestamp = timestamp = object()
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
 
-        col1_fam = "cf1"
-        col1_qual = "qual1"
-        value1 = "value1"
-        col2_fam = "cf2"
-        col2_qual = "qual2"
-        value2 = "value2"
-        data = {
-            (col1_fam + ":" + col1_qual).encode("utf-8"): value1,
-            (col2_fam + ":" + col2_qual).encode("utf-8"): value2,
-        }
+        col1_fam = 'cf1'
+        col1_qual = 'qual1'
+        value1 = 'value1'
+        col2_fam = 'cf2'
+        col2_qual = 'qual2'
+        value2 = 'value2'
+        data = {(col1_fam + ':' + col1_qual).encode('utf-8'): value1,
+                (col2_fam + ':' + col2_qual).encode('utf-8'): value2}
 
         self.assertEqual(batch._mutation_count, 0)
         self.assertEqual(row.set_cell_calls, [])
@@ -237,12 +235,13 @@ class TestBatch(unittest.TestCase):
         ordered_calls = sorted(row.set_cell_calls, key=first_elt)
 
         cell1_args = (col1_fam, col1_qual, value1)
-        cell1_kwargs = {"timestamp": timestamp}
+        cell1_kwargs = {'timestamp': timestamp}
         cell2_args = (col2_fam, col2_qual, value2)
-        cell2_kwargs = {"timestamp": timestamp}
-        self.assertEqual(
-            ordered_calls, [(cell1_args, cell1_kwargs), (cell2_args, cell2_kwargs)]
-        )
+        cell2_kwargs = {'timestamp': timestamp}
+        self.assertEqual(ordered_calls, [
+            (cell1_args, cell1_kwargs),
+            (cell2_args, cell2_kwargs),
+        ])
 
     def test_put_bad_wal(self):
         import warnings
@@ -270,7 +269,7 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = CallTrySend(table)
 
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = _MockRow()
 
         self.assertEqual(batch._mutation_count, 0)
@@ -285,25 +284,23 @@ class TestBatch(unittest.TestCase):
         batch = self._make_one(table)
         batch._delete_range = time_range
 
-        col1_fam = "cf1"
-        col2_fam = "cf2"
-        col2_qual = "col-name"
-        columns = [col1_fam + ":", col2_fam + ":" + col2_qual]
+        col1_fam = 'cf1'
+        col2_fam = 'cf2'
+        col2_qual = 'col-name'
+        columns = [col1_fam + ':', col2_fam + ':' + col2_qual]
         row_object = _MockRow()
 
         batch._delete_columns(columns, row_object)
         self.assertEqual(row_object.commits, 0)
 
         cell_deleted_args = (col2_fam, col2_qual)
-        cell_deleted_kwargs = {"time_range": time_range}
-        self.assertEqual(
-            row_object.delete_cell_calls, [(cell_deleted_args, cell_deleted_kwargs)]
-        )
+        cell_deleted_kwargs = {'time_range': time_range}
+        self.assertEqual(row_object.delete_cell_calls,
+                         [(cell_deleted_args, cell_deleted_kwargs)])
         fam_deleted_args = (col1_fam,)
-        fam_deleted_kwargs = {"columns": row_object.ALL_COLUMNS}
-        self.assertEqual(
-            row_object.delete_cells_calls, [(fam_deleted_args, fam_deleted_kwargs)]
-        )
+        fam_deleted_kwargs = {'columns': row_object.ALL_COLUMNS}
+        self.assertEqual(row_object.delete_cells_calls,
+                         [(fam_deleted_args, fam_deleted_kwargs)])
 
     def test__delete_columns(self):
         self._delete_columns_test_helper()
@@ -317,7 +314,7 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = self._make_one(table)
 
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
 
         self.assertEqual(row.deletes, 0)
@@ -349,7 +346,7 @@ class TestBatch(unittest.TestCase):
         batch = self._make_one(table)
         batch._delete_range = object()
 
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
 
         self.assertEqual(row.deletes, 0)
@@ -372,7 +369,7 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = CallTrySend(table)
 
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = _MockRow()
 
         self.assertEqual(batch._mutation_count, 0)
@@ -386,28 +383,26 @@ class TestBatch(unittest.TestCase):
         table = object()
         batch = self._make_one(table)
 
-        row_key = "row-key"
+        row_key = 'row-key'
         batch._row_map[row_key] = row = _MockRow()
 
         self.assertEqual(batch._mutation_count, 0)
 
-        col1_fam = "cf1"
-        col2_fam = "cf2"
-        col2_qual = "col-name"
-        columns = [col1_fam + ":", col2_fam + ":" + col2_qual]
+        col1_fam = 'cf1'
+        col2_fam = 'cf2'
+        col2_qual = 'col-name'
+        columns = [col1_fam + ':', col2_fam + ':' + col2_qual]
         batch.delete(row_key, columns=columns)
 
         self.assertEqual(batch._mutation_count, 2)
         cell_deleted_args = (col2_fam, col2_qual)
-        cell_deleted_kwargs = {"time_range": None}
-        self.assertEqual(
-            row.delete_cell_calls, [(cell_deleted_args, cell_deleted_kwargs)]
-        )
+        cell_deleted_kwargs = {'time_range': None}
+        self.assertEqual(row.delete_cell_calls,
+                         [(cell_deleted_args, cell_deleted_kwargs)])
         fam_deleted_args = (col1_fam,)
-        fam_deleted_kwargs = {"columns": row.ALL_COLUMNS}
-        self.assertEqual(
-            row.delete_cells_calls, [(fam_deleted_args, fam_deleted_kwargs)]
-        )
+        fam_deleted_kwargs = {'columns': row.ALL_COLUMNS}
+        self.assertEqual(row.delete_cells_calls,
+                         [(fam_deleted_args, fam_deleted_kwargs)])
 
     def test_context_manager(self):
         klass = self._get_target_class()
@@ -436,7 +431,7 @@ class TestBatch(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             with batch:
-                raise ValueError("Something bad happened")
+                raise ValueError('Something bad happened')
 
         self.assertTrue(batch._send_called)
 
@@ -452,7 +447,7 @@ class TestBatch(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             with batch:
-                raise ValueError("Something bad happened")
+                raise ValueError('Something bad happened')
 
         self.assertFalse(batch._send_called)
 
@@ -462,25 +457,25 @@ class TestBatch(unittest.TestCase):
 
 
 class Test__get_column_pairs(unittest.TestCase):
+
     def _call_fut(self, *args, **kwargs):
         from google.cloud.happybase.batch import _get_column_pairs
-
         return _get_column_pairs(*args, **kwargs)
 
     def test_it(self):
-        columns = [b"cf1", u"cf2:", "cf3::", "cf3:name1", "cf3:name2"]
+        columns = [b'cf1', u'cf2:', 'cf3::', 'cf3:name1', 'cf3:name2']
         result = self._call_fut(columns)
         expected_result = [
-            ["cf1", None],
-            ["cf2", None],
-            ["cf3", ""],
-            ["cf3", "name1"],
-            ["cf3", "name2"],
+            ['cf1', None],
+            ['cf2', None],
+            ['cf3', ''],
+            ['cf3', 'name1'],
+            ['cf3', 'name2'],
         ]
         self.assertEqual(result, expected_result)
 
     def test_bad_column(self):
-        columns = ["a:b:c"]
+        columns = ['a:b:c']
         with self.assertRaises(ValueError):
             self._call_fut(columns)
 
@@ -495,7 +490,7 @@ class Test__get_column_pairs(unittest.TestCase):
             self._call_fut(columns)
 
     def test_column_family_with_require_qualifier(self):
-        columns = ["a:"]
+        columns = ['a:']
         with self.assertRaises(ValueError):
             self._call_fut(columns, require_qualifier=True)
 
@@ -534,11 +529,13 @@ class _MockRow(object):
 
 
 class _MockTable(object):
+
     def __init__(self, low_level_table):
         self._low_level_table = low_level_table
 
 
 class _MockLowLevelTable(object):
+
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs

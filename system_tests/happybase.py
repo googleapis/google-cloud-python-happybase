@@ -29,38 +29,36 @@ from retry import RetryErrors
 from system_test_utils import unique_resource_id
 
 
-_PACK_I64 = struct.Struct(">q").pack
+_PACK_I64 = struct.Struct('>q').pack
 _FIRST_ELT = operator.itemgetter(0)
-LOCATION_ID = "us-central1-c"
+LOCATION_ID = 'us-central1-c'
 # NOTE: Avoid using the same name as in bigtable.py
-INSTANCE_ID = "gcl-hb" + unique_resource_id("-")
-CLUSTER_ID = "gcl-hb-c1" + unique_resource_id("-")
+INSTANCE_ID = 'gcl-hb' + unique_resource_id('-')
+CLUSTER_ID = 'gcl-hb-c1' + unique_resource_id('-')
 SERVER_NODES = 3
-TABLE_NAME = "table-name"
-ALT_TABLE_NAME = "other-table"
+TABLE_NAME = 'table-name'
+ALT_TABLE_NAME = 'other-table'
 TTL_FOR_TEST = 3
-COL_FAM1 = "cf1"
-COL_FAM2 = "cf2"
-COL_FAM3 = "cf3"
+COL_FAM1 = 'cf1'
+COL_FAM2 = 'cf2'
+COL_FAM3 = 'cf3'
 FAMILIES = {
-    COL_FAM1: {"max_versions": 10},
-    COL_FAM2: {"max_versions": 1, "time_to_live": TTL_FOR_TEST},
+    COL_FAM1: {'max_versions': 10},
+    COL_FAM2: {'max_versions': 1, 'time_to_live': TTL_FOR_TEST},
     COL_FAM3: {},  # use defaults
 }
-ROW_KEY1 = b"row-key1"
-ROW_KEY2 = b"row-key2a"
-ROW_KEY3 = b"row-key2b"
-COL1 = (COL_FAM1 + ":qual1").encode("utf-8")
-COL2 = (COL_FAM1 + ":qual2").encode("utf-8")
-COL3 = (COL_FAM2 + ":qual1").encode("utf-8")
-COL4 = (COL_FAM3 + ":qual3").encode("utf-8")
+ROW_KEY1 = b'row-key1'
+ROW_KEY2 = b'row-key2a'
+ROW_KEY3 = b'row-key2b'
+COL1 = (COL_FAM1 + ':qual1').encode('utf-8')
+COL2 = (COL_FAM1 + ':qual2').encode('utf-8')
+COL3 = (COL_FAM2 + ':qual1').encode('utf-8')
+COL4 = (COL_FAM3 + ':qual3').encode('utf-8')
 
-LABEL_KEY = u"python-system-happybase"
-label_stamp = (
-    datetime.datetime.utcnow()
-    .replace(microsecond=0, tzinfo=UTC)
-    .strftime("%Y-%m-%dt%H-%M-%S")
-)
+LABEL_KEY = u'python-system-happybase'
+label_stamp = datetime.datetime.utcnow() \
+                               .replace(microsecond=0, tzinfo=UTC,) \
+                               .strftime("%Y-%m-%dt%H-%M-%S")
 LABELS = {LABEL_KEY: str(label_stamp)}
 
 
@@ -70,7 +68,6 @@ class Config(object):
     This is a mutable stand-in to allow test set-up to modify
     global state.
     """
-
     CONNECTION = None
     TABLE = None
 
@@ -107,9 +104,8 @@ retry_429 = RetryErrors(TooManyRequests)
 def set_connection():
     client = client_mod.Client(admin=True)
     instance = client.instance(INSTANCE_ID, labels=LABELS)
-    cluster = instance.cluster(
-        CLUSTER_ID, location_id=LOCATION_ID, serve_nodes=SERVER_NODES
-    )
+    cluster = instance.cluster(CLUSTER_ID, location_id=LOCATION_ID,
+                               serve_nodes=SERVER_NODES)
     operation = instance.create(clusters=[cluster])
     operation.result(10)
     Config.CONNECTION = Connection(instance=instance)
@@ -128,6 +124,7 @@ def tearDownModule():
 
 
 class TestConnection(unittest.TestCase):
+
     def test_create_and_delete_table(self):
         connection = Config.CONNECTION
 
@@ -148,6 +145,7 @@ class TestConnection(unittest.TestCase):
 
 
 class BaseTableTest(unittest.TestCase):
+
     def setUp(self):
         self.rows_to_delete = []
 
@@ -157,6 +155,7 @@ class BaseTableTest(unittest.TestCase):
 
 
 class TestTable_families(BaseTableTest):
+
     def test_families(self):
         families = Config.TABLE.families()
 
@@ -168,6 +167,7 @@ class TestTable_families(BaseTableTest):
 
 
 class TestTable_row(BaseTableTest):
+
     def test_row_when_empty(self):
         row1 = Config.TABLE.row(ROW_KEY1)
         row2 = Config.TABLE.row(ROW_KEY2)
@@ -177,11 +177,16 @@ class TestTable_row(BaseTableTest):
 
     def test_row_with_columns(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
-        value4 = b"value4"
-        row1_data = {COL1: value1, COL2: value2, COL3: value3, COL4: value4}
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
+        value4 = b'value4'
+        row1_data = {
+            COL1: value1,
+            COL2: value2,
+            COL3: value3,
+            COL4: value4,
+        }
 
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -193,25 +198,31 @@ class TestTable_row(BaseTableTest):
 
         # Pick out specific columns.
         row1_diff_fams = table.row(ROW_KEY1, columns=[COL1, COL4])
-        self.assertEqual(row1_diff_fams, {COL1: value1, COL4: value4})
+        self.assertEqual(row1_diff_fams, {COL1: value1,
+                                          COL4: value4})
         row1_single_col = table.row(ROW_KEY1, columns=[COL3])
         self.assertEqual(row1_single_col, {COL3: value3})
         row1_col_fam = table.row(ROW_KEY1, columns=[COL_FAM1])
-        self.assertEqual(row1_col_fam, {COL1: value1, COL2: value2})
+        self.assertEqual(row1_col_fam, {COL1: value1,
+                                        COL2: value2})
         row1_fam_qual_overlap1 = table.row(ROW_KEY1, columns=[COL1, COL_FAM1])
-        self.assertEqual(row1_fam_qual_overlap1, {COL1: value1, COL2: value2})
+        self.assertEqual(row1_fam_qual_overlap1, {COL1: value1,
+                                                  COL2: value2})
         row1_fam_qual_overlap2 = table.row(ROW_KEY1, columns=[COL_FAM1, COL1])
-        self.assertEqual(row1_fam_qual_overlap2, {COL1: value1, COL2: value2})
-        row1_multiple_col_fams = table.row(ROW_KEY1, columns=[COL_FAM1, COL_FAM2])
-        self.assertEqual(
-            row1_multiple_col_fams, {COL1: value1, COL2: value2, COL3: value3}
-        )
+        self.assertEqual(row1_fam_qual_overlap2,
+                         {COL1: value1, COL2: value2})
+        row1_multiple_col_fams = table.row(ROW_KEY1,
+                                           columns=[COL_FAM1, COL_FAM2])
+        self.assertEqual(row1_multiple_col_fams,
+                         {COL1: value1,
+                          COL2: value2,
+                          COL3: value3})
 
     def test_row_with_timestamp(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
 
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -225,25 +236,37 @@ class TestTable_row(BaseTableTest):
         ts2 = row1[COL2][1]
         ts3 = row1[COL3][1]
 
-        expected_row = {COL1: (value1, ts1), COL2: (value2, ts2), COL3: (value3, ts3)}
+        expected_row = {
+            COL1: (value1, ts1),
+            COL2: (value2, ts2),
+            COL3: (value3, ts3),
+        }
         self.assertEqual(row1, expected_row)
 
         # Make sure the timestamps are (strictly) ascending.
         self.assertTrue(ts1 < ts2 < ts3)
 
         # Use timestamps to retrieve row.
-        first_two = table.row(ROW_KEY1, timestamp=ts2 + 1, include_timestamp=True)
-        self.assertEqual(first_two, {COL1: (value1, ts1), COL2: (value2, ts2)})
-        first_one = table.row(ROW_KEY1, timestamp=ts2, include_timestamp=True)
-        self.assertEqual(first_one, {COL1: (value1, ts1)})
+        first_two = table.row(ROW_KEY1, timestamp=ts2 + 1,
+                              include_timestamp=True)
+        self.assertEqual(first_two, {
+            COL1: (value1, ts1),
+            COL2: (value2, ts2),
+        })
+        first_one = table.row(ROW_KEY1, timestamp=ts2,
+                              include_timestamp=True)
+        self.assertEqual(first_one, {
+            COL1: (value1, ts1),
+        })
 
 
 class TestTable_rows(BaseTableTest):
+
     def test_rows(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
         row1_data = {COL1: value1, COL2: value2}
         row2_data = {COL1: value3}
 
@@ -260,9 +283,9 @@ class TestTable_rows(BaseTableTest):
 
     def test_rows_with_returned_timestamps(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
         row1_data = {COL1: value1, COL2: value2}
         row2_data = {COL1: value3}
 
@@ -273,9 +296,8 @@ class TestTable_rows(BaseTableTest):
             batch.put(ROW_KEY1, row1_data)
             batch.put(ROW_KEY2, row2_data)
 
-        rows = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], include_timestamp=True), key=_FIRST_ELT
-        )
+        rows = sorted(table.rows([ROW_KEY1, ROW_KEY2], include_timestamp=True),
+                      key=_FIRST_ELT)
         row1, row2 = rows
         self.assertEqual(row1[0], ROW_KEY1)
         self.assertEqual(row2[0], ROW_KEY2)
@@ -286,7 +308,8 @@ class TestTable_rows(BaseTableTest):
 
         ts = row1[COL1][1]
         # All will have the same timestamp since we used batch.
-        expected_row1_result = {COL1: (value1, ts), COL2: (value2, ts)}
+        expected_row1_result = {COL1: (value1, ts),
+                                COL2: (value2, ts)}
         self.assertEqual(row1, expected_row1_result)
         # NOTE: This method was written before Cloud Bigtable had the concept
         #       of batching, so each mutation is sent individually. (This
@@ -301,9 +324,9 @@ class TestTable_rows(BaseTableTest):
 
     def test_rows_with_columns(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
         row1_data = {COL1: value1, COL2: value2}
         row2_data = {COL1: value3}
 
@@ -314,9 +337,8 @@ class TestTable_rows(BaseTableTest):
         table.put(ROW_KEY2, row2_data)
 
         # Filter a single column present in both rows.
-        rows_col1 = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], columns=[COL1]), key=_FIRST_ELT
-        )
+        rows_col1 = sorted(table.rows([ROW_KEY1, ROW_KEY2], columns=[COL1]),
+                           key=_FIRST_ELT)
         row1, row2 = rows_col1
         self.assertEqual(row1, (ROW_KEY1, {COL1: value1}))
         self.assertEqual(row2, (ROW_KEY2, {COL1: value3}))
@@ -327,8 +349,8 @@ class TestTable_rows(BaseTableTest):
 
         # Filter a column family.
         rows_col_fam1 = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], columns=[COL_FAM1]), key=_FIRST_ELT
-        )
+            table.rows([ROW_KEY1, ROW_KEY2], columns=[COL_FAM1]),
+            key=_FIRST_ELT)
         row1, row2 = rows_col_fam1
         self.assertEqual(row1, (ROW_KEY1, row1_data))
         self.assertEqual(row2, (ROW_KEY2, row2_data))
@@ -338,27 +360,27 @@ class TestTable_rows(BaseTableTest):
         self.assertEqual(rows_col_fam2, [])
 
         # Filter a column family that overlaps with a column.
-        rows_col_fam_overlap1 = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], columns=[COL1, COL_FAM1]), key=_FIRST_ELT
-        )
+        rows_col_fam_overlap1 = sorted(table.rows([ROW_KEY1, ROW_KEY2],
+                                                  columns=[COL1, COL_FAM1]),
+                                       key=_FIRST_ELT)
         row1, row2 = rows_col_fam_overlap1
         self.assertEqual(row1, (ROW_KEY1, row1_data))
         self.assertEqual(row2, (ROW_KEY2, row2_data))
 
         # Filter a column family that overlaps with a column (opposite order).
-        rows_col_fam_overlap2 = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], columns=[COL_FAM1, COL1]), key=_FIRST_ELT
-        )
+        rows_col_fam_overlap2 = sorted(table.rows([ROW_KEY1, ROW_KEY2],
+                                                  columns=[COL_FAM1, COL1]),
+                                       key=_FIRST_ELT)
         row1, row2 = rows_col_fam_overlap2
         self.assertEqual(row1, (ROW_KEY1, row1_data))
         self.assertEqual(row2, (ROW_KEY2, row2_data))
 
     def test_rows_with_timestamp(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
-        value4 = b"value4"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
+        value4 = b'value4'
 
         # Need to clean-up row1 and row2 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -369,9 +391,8 @@ class TestTable_rows(BaseTableTest):
         table.put(ROW_KEY1, {COL4: value4})
 
         # Just grab the timestamps
-        rows = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], include_timestamp=True), key=_FIRST_ELT
-        )
+        rows = sorted(table.rows([ROW_KEY1, ROW_KEY2], include_timestamp=True),
+                      key=_FIRST_ELT)
         row1, row2 = rows
         self.assertEqual(row1[0], ROW_KEY1)
         self.assertEqual(row2[0], ROW_KEY2)
@@ -386,37 +407,39 @@ class TestTable_rows(BaseTableTest):
         self.assertTrue(ts1 < ts2 < ts3 < ts4)
 
         # Rows before the third timestamp (assumes exclusive endpoint).
-        rows = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], timestamp=ts3, include_timestamp=True),
-            key=_FIRST_ELT,
-        )
+        rows = sorted(table.rows([ROW_KEY1, ROW_KEY2], timestamp=ts3,
+                                 include_timestamp=True),
+                      key=_FIRST_ELT)
         row1, row2 = rows
         self.assertEqual(row1, (ROW_KEY1, {COL1: (value1, ts1)}))
         self.assertEqual(row2, (ROW_KEY2, {COL1: (value2, ts2)}))
 
         # All writes (bump the exclusive endpoint by 1 millisecond).
-        rows = sorted(
-            table.rows([ROW_KEY1, ROW_KEY2], timestamp=ts4 + 1, include_timestamp=True),
-            key=_FIRST_ELT,
-        )
+        rows = sorted(table.rows([ROW_KEY1, ROW_KEY2], timestamp=ts4 + 1,
+                                 include_timestamp=True),
+                      key=_FIRST_ELT)
         row1, row2 = rows
-        row1_all_data = {COL1: (value1, ts1), COL2: (value3, ts3), COL4: (value4, ts4)}
+        row1_all_data = {
+            COL1: (value1, ts1),
+            COL2: (value3, ts3),
+            COL4: (value4, ts4),
+        }
         self.assertEqual(row1, (ROW_KEY1, row1_all_data))
         self.assertEqual(row2, (ROW_KEY2, {COL1: (value2, ts2)}))
 
         # First three writes, restricted to column 2.
-        rows = table.rows(
-            [ROW_KEY1, ROW_KEY2], timestamp=ts4, columns=[COL2], include_timestamp=True
-        )
+        rows = table.rows([ROW_KEY1, ROW_KEY2], timestamp=ts4,
+                          columns=[COL2], include_timestamp=True)
         self.assertEqual(rows, [(ROW_KEY1, {COL2: (value3, ts3)})])
 
 
 class TestTable_cells(BaseTableTest):
+
     def test_cells(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
 
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -435,32 +458,35 @@ class TestTable_cells(BaseTableTest):
         ts3 = all_cells[0][1]
         ts2 = all_cells[1][1]
         ts1 = all_cells[2][1]
-        self.assertEqual(all_cells, [(value3, ts3), (value2, ts2), (value1, ts1)])
+        self.assertEqual(all_cells,
+                         [(value3, ts3), (value2, ts2), (value1, ts1)])
 
         # Limit to the two latest cells.
-        latest_two = table.cells(ROW_KEY1, COL1, include_timestamp=True, versions=2)
+        latest_two = table.cells(ROW_KEY1, COL1, include_timestamp=True,
+                                 versions=2)
         self.assertEqual(latest_two, [(value3, ts3), (value2, ts2)])
 
         # Limit to cells before the 2nd timestamp (inclusive).
-        first_two = table.cells(
-            ROW_KEY1, COL1, include_timestamp=True, timestamp=ts2 + 1
-        )
+        first_two = table.cells(ROW_KEY1, COL1, include_timestamp=True,
+                                timestamp=ts2 + 1)
         self.assertEqual(first_two, [(value2, ts2), (value1, ts1)])
 
         # Limit to cells before the 2nd timestamp (exclusive).
-        first_cell = table.cells(ROW_KEY1, COL1, include_timestamp=True, timestamp=ts2)
+        first_cell = table.cells(ROW_KEY1, COL1, include_timestamp=True,
+                                 timestamp=ts2)
         self.assertEqual(first_cell, [(value1, ts1)])
 
 
 class TestTable_scan(BaseTableTest):
+
     def test_scan_when_empty(self):
         scan_result = list(Config.TABLE.scan())
         self.assertEqual(scan_result, [])
 
     def test_scan_single_row(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -471,7 +497,8 @@ class TestTable_scan(BaseTableTest):
         self.assertEqual(scan_result, [(ROW_KEY1, row1_data)])
 
         scan_result_cols = list(table.scan(columns=[COL1]))
-        self.assertEqual(scan_result_cols, [(ROW_KEY1, {COL1: value1})])
+        self.assertEqual(scan_result_cols, [(ROW_KEY1,
+                                             {COL1: value1})])
 
         scan_result_ts = list(table.scan(include_timestamp=True))
         self.assertEqual(len(scan_result_ts), 1)
@@ -479,16 +506,18 @@ class TestTable_scan(BaseTableTest):
         self.assertEqual(only_row[0], ROW_KEY1)
         row_values = only_row[1]
         ts = row_values[COL1][1]
-        self.assertEqual(row_values, {COL1: (value1, ts), COL2: (value2, ts)})
+        self.assertEqual(row_values,
+                         {COL1: (value1, ts),
+                          COL2: (value2, ts)})
 
     def test_scan_filters(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
-        value4 = b"value4"
-        value5 = b"value5"
-        value6 = b"value6"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
+        value4 = b'value4'
+        value5 = b'value5'
+        value6 = b'value6'
         row1_data = {COL1: value1, COL2: value2}
         row2_data = {COL2: value3, COL3: value4}
         row3_data = {COL3: value5, COL4: value6}
@@ -503,22 +532,26 @@ class TestTable_scan(BaseTableTest):
 
         # Basic scan (no filters)
         scan_result = list(table.scan())
-        self.assertEqual(
-            scan_result,
-            [(ROW_KEY1, row1_data), (ROW_KEY2, row2_data), (ROW_KEY3, row3_data)],
-        )
+        self.assertEqual(scan_result, [
+            (ROW_KEY1, row1_data),
+            (ROW_KEY2, row2_data),
+            (ROW_KEY3, row3_data),
+        ])
 
         # Limit the size of the scan
         scan_result = list(table.scan(limit=1))
-        self.assertEqual(scan_result, [(ROW_KEY1, row1_data)])
+        self.assertEqual(scan_result, [
+            (ROW_KEY1, row1_data),
+        ])
 
         # Scan with a row prefix.
         prefix = ROW_KEY2[:-1]
         self.assertEqual(prefix, ROW_KEY3[:-1])
         scan_result_prefixed = list(table.scan(row_prefix=prefix))
-        self.assertEqual(
-            scan_result_prefixed, [(ROW_KEY2, row2_data), (ROW_KEY3, row3_data)]
-        )
+        self.assertEqual(scan_result_prefixed, [
+            (ROW_KEY2, row2_data),
+            (ROW_KEY3, row3_data),
+        ])
 
         # Make sure our keys are sorted in order
         row_keys = [ROW_KEY1, ROW_KEY2, ROW_KEY3]
@@ -526,31 +559,33 @@ class TestTable_scan(BaseTableTest):
 
         # row_start alone (inclusive)
         scan_result_row_start = list(table.scan(row_start=ROW_KEY2))
-        self.assertEqual(
-            scan_result_row_start, [(ROW_KEY2, row2_data), (ROW_KEY3, row3_data)]
-        )
+        self.assertEqual(scan_result_row_start, [
+            (ROW_KEY2, row2_data),
+            (ROW_KEY3, row3_data),
+        ])
 
         # row_stop alone (exclusive)
         scan_result_row_stop = list(table.scan(row_stop=ROW_KEY2))
-        self.assertEqual(scan_result_row_stop, [(ROW_KEY1, row1_data)])
+        self.assertEqual(scan_result_row_stop, [
+            (ROW_KEY1, row1_data),
+        ])
 
         # Both row_start and row_stop
         scan_result_row_stop_and_start = list(
-            table.scan(row_start=ROW_KEY1, row_stop=ROW_KEY3)
-        )
-        self.assertEqual(
-            scan_result_row_stop_and_start,
-            [(ROW_KEY1, row1_data), (ROW_KEY2, row2_data)],
-        )
+            table.scan(row_start=ROW_KEY1, row_stop=ROW_KEY3))
+        self.assertEqual(scan_result_row_stop_and_start, [
+            (ROW_KEY1, row1_data),
+            (ROW_KEY2, row2_data),
+        ])
 
     def test_scan_timestamp(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
-        value4 = b"value4"
-        value5 = b"value5"
-        value6 = b"value6"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
+        value4 = b'value4'
+        value5 = b'value5'
+        value6 = b'value6'
 
         # Need to clean-up row1/2/3 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -585,39 +620,43 @@ class TestTable_scan(BaseTableTest):
         ts5 = row3[COL3][1]
         ts6 = row1[COL1][1]
 
-        self.assertEqual(row1, {COL1: (value1, ts6), COL2: (value2, ts4)})
-        self.assertEqual(row2, {COL2: (value3, ts3), COL3: (value4, ts2)})
-        self.assertEqual(row3, {COL3: (value5, ts5), COL4: (value6, ts1)})
+        self.assertEqual(row1, {COL1: (value1, ts6),
+                                COL2: (value2, ts4)})
+        self.assertEqual(row2, {COL2: (value3, ts3),
+                                COL3: (value4, ts2)})
+        self.assertEqual(row3, {COL3: (value5, ts5),
+                                COL4: (value6, ts1)})
 
         # All cells before ts1 (exclusive)
-        scan_result_before_ts1 = list(table.scan(timestamp=ts1, include_timestamp=True))
+        scan_result_before_ts1 = list(table.scan(timestamp=ts1,
+                                                 include_timestamp=True))
         self.assertEqual(scan_result_before_ts1, [])
 
         # All cells before ts2 (inclusive)
-        scan_result_before_ts2 = list(
-            table.scan(timestamp=ts2 + 1, include_timestamp=True)
-        )
-        self.assertEqual(
-            scan_result_before_ts2,
-            [(ROW_KEY2, {COL3: (value4, ts2)}), (ROW_KEY3, {COL4: (value6, ts1)})],
-        )
+        scan_result_before_ts2 = list(table.scan(timestamp=ts2 + 1,
+                                                 include_timestamp=True))
+        self.assertEqual(scan_result_before_ts2, [
+            (ROW_KEY2, {COL3: (value4, ts2)}),
+            (ROW_KEY3, {COL4: (value6, ts1)}),
+        ])
 
         # All cells before ts6 (exclusive)
-        scan_result_before_ts6 = list(table.scan(timestamp=ts6, include_timestamp=True))
-        self.assertEqual(
-            scan_result_before_ts6,
-            [
-                (ROW_KEY1, {COL2: (value2, ts4)}),
-                (ROW_KEY2, {COL2: (value3, ts3), COL3: (value4, ts2)}),
-                (ROW_KEY3, {COL3: (value5, ts5), COL4: (value6, ts1)}),
-            ],
-        )
+        scan_result_before_ts6 = list(table.scan(timestamp=ts6,
+                                                 include_timestamp=True))
+        self.assertEqual(scan_result_before_ts6, [
+            (ROW_KEY1, {COL2: (value2, ts4)}),
+            (ROW_KEY2, {COL2: (value3, ts3),
+                        COL3: (value4, ts2)}),
+            (ROW_KEY3, {COL3: (value5, ts5),
+                        COL4: (value6, ts1)}),
+        ])
 
 
 class TestTable_put(BaseTableTest):
+
     def test_put(self):
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -633,15 +672,13 @@ class TestTable_put(BaseTableTest):
         timestamp2 = row1[COL2][1]
         self.assertEqual(timestamp1, timestamp2)
 
-        row1_data_with_timestamps = {
-            COL1: (value1, timestamp1),
-            COL2: (value2, timestamp2),
-        }
+        row1_data_with_timestamps = {COL1: (value1, timestamp1),
+                                     COL2: (value2, timestamp2)}
         self.assertEqual(row1, row1_data_with_timestamps)
 
     def test_put_with_timestamp(self):
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
         ts = 1461367402
 
@@ -651,7 +688,8 @@ class TestTable_put(BaseTableTest):
 
         # Check again, but this time with timestamps.
         row1 = Config.TABLE.row(ROW_KEY1, include_timestamp=True)
-        row1_data_with_timestamps = {COL1: (value1, ts), COL2: (value2, ts)}
+        row1_data_with_timestamps = {COL1: (value1, ts),
+                                     COL2: (value2, ts)}
         self.assertEqual(row1, row1_data_with_timestamps)
 
     def test_put_not_encoded_value(self):
@@ -676,10 +714,11 @@ class TestTable_put(BaseTableTest):
 
 
 class TestTable_delete(BaseTableTest):
+
     def test_delete(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -695,8 +734,8 @@ class TestTable_delete(BaseTableTest):
 
     def test_delete_with_columns(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -712,9 +751,9 @@ class TestTable_delete(BaseTableTest):
 
     def test_delete_with_column_family(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
-        value3 = b"value3"
+        value1 = b'value1'
+        value2 = b'value2'
+        value3 = b'value3'
         row1_data = {COL1: value1, COL2: value2, COL4: value3}
 
         # Need to clean-up row1 after.
@@ -730,8 +769,8 @@ class TestTable_delete(BaseTableTest):
 
     def test_delete_with_columns_family_overlap(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
         row1_data = {COL1: value1, COL2: value2}
 
         # Need to clean-up row1 after.
@@ -757,8 +796,8 @@ class TestTable_delete(BaseTableTest):
 
     def test_delete_with_timestamp(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
 
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -787,12 +826,13 @@ class TestTable_delete(BaseTableTest):
         #       creating Batch._delete_range.
         table.delete(ROW_KEY1, columns=[COL1, COL2], timestamp=ts1)
         row1_after_incl_delete = table.row(ROW_KEY1, include_timestamp=True)
-        self.assertEqual(row1_after_incl_delete, {COL2: (value2, ts2)})
+        self.assertEqual(row1_after_incl_delete,
+                         {COL2: (value2, ts2)})
 
     def test_delete_with_columns_and_timestamp(self):
         table = Config.TABLE
-        value1 = b"value1"
-        value2 = b"value2"
+        value1 = b'value1'
+        value2 = b'value2'
 
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
@@ -825,6 +865,7 @@ class TestTable_delete(BaseTableTest):
 
 
 class TestTableCounterMethods(BaseTableTest):
+
     def test_counter_get(self):
         table = Config.TABLE
 
@@ -835,7 +876,8 @@ class TestTableCounterMethods(BaseTableTest):
         initial_counter = table.counter_get(ROW_KEY1, COL1)
         self.assertEqual(initial_counter, 0)
 
-        self.assertEqual(table.row(ROW_KEY1, columns=[COL1]), {COL1: _PACK_I64(0)})
+        self.assertEqual(table.row(ROW_KEY1, columns=[COL1]),
+                         {COL1: _PACK_I64(0)})
 
     def test_counter_inc(self):
         table = Config.TABLE
@@ -852,9 +894,8 @@ class TestTableCounterMethods(BaseTableTest):
         self.assertEqual(updated_counter, inc_value)
 
         # Check that the value is set (does not seem to occur on HBase).
-        self.assertEqual(
-            table.row(ROW_KEY1, columns=[COL1]), {COL1: _PACK_I64(inc_value)}
-        )
+        self.assertEqual(table.row(ROW_KEY1, columns=[COL1]),
+                         {COL1: _PACK_I64(inc_value)})
 
     def test_counter_dec(self):
         table = Config.TABLE
@@ -871,6 +912,5 @@ class TestTableCounterMethods(BaseTableTest):
         self.assertEqual(updated_counter, -dec_value)
 
         # Check that the value is set (does not seem to occur on HBase).
-        self.assertEqual(
-            table.row(ROW_KEY1, columns=[COL1]), {COL1: _PACK_I64(-dec_value)}
-        )
+        self.assertEqual(table.row(ROW_KEY1, columns=[COL1]),
+                         {COL1: _PACK_I64(-dec_value)})

@@ -19,21 +19,19 @@ import mock
 
 
 class Test__get_instance(unittest.TestCase):
+
     def _call_fut(self):
         from google.cloud.happybase.connection import _get_instance
-
         return _get_instance()
 
     def _helper(self, instances=(), failed_locations=()):
         from functools import partial
 
         client_with_instances = partial(
-            _Client, instances=instances, failed_locations=failed_locations
-        )
+            _Client, instances=instances, failed_locations=failed_locations)
 
-        with mock.patch(
-            "google.cloud.happybase.connection.Client", client_with_instances
-        ):
+        with mock.patch('google.cloud.happybase.connection.Client',
+                        client_with_instances):
             result = self._call_fut()
 
         # If we've reached this point, then _call_fut didn't fail, so we know
@@ -42,7 +40,7 @@ class Test__get_instance(unittest.TestCase):
         self.assertEqual(result, instance)
         client = instance.client
         self.assertEqual(client.args, ())
-        expected_kwargs = {"admin": True}
+        expected_kwargs = {'admin': True}
         self.assertEqual(client.kwargs, expected_kwargs)
 
     def test_default(self):
@@ -60,15 +58,16 @@ class Test__get_instance(unittest.TestCase):
 
     def test_with_failed_locations(self):
         instance = _Instance()
-        failed_location = "us-central1-c"
+        failed_location = 'us-central1-c'
         with self.assertRaises(ValueError):
-            self._helper(instances=[instance], failed_locations=[failed_location])
+            self._helper(instances=[instance],
+                         failed_locations=[failed_location])
 
 
 class TestConnection(unittest.TestCase):
+
     def _get_target_class(self):
         from google.cloud.happybase.connection import Connection
-
         return Connection
 
     def _make_one(self, *args, **kwargs):
@@ -80,13 +79,13 @@ class TestConnection(unittest.TestCase):
 
         self.assertEqual(connection._instance, instance)
         self.assertEqual(connection.table_prefix, None)
-        self.assertEqual(connection.table_prefix_separator, "_")
+        self.assertEqual(connection.table_prefix_separator, '_')
 
     def test_constructor_no_autoconnect(self):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
         self.assertEqual(connection.table_prefix, None)
-        self.assertEqual(connection.table_prefix_separator, "_")
+        self.assertEqual(connection.table_prefix_separator, '_')
 
     def test_constructor_missing_instance(self):
         instance = _Instance()
@@ -94,35 +93,35 @@ class TestConnection(unittest.TestCase):
         def mock_get_instance():
             return instance
 
-        with mock.patch(
-            "google.cloud.happybase.connection._get_instance", mock_get_instance
-        ):
-            connection = self._make_one(autoconnect=False, instance=None)
+        with mock.patch('google.cloud.happybase.connection._get_instance',
+                        mock_get_instance):
+            connection = self._make_one(
+                autoconnect=False, instance=None)
 
             self.assertEqual(connection.table_prefix, None)
-            self.assertEqual(connection.table_prefix_separator, "_")
+            self.assertEqual(connection.table_prefix_separator, '_')
             self.assertEqual(connection._instance, instance)
 
     def test_constructor_explicit(self):
         autoconnect = False
-        table_prefix = "table-prefix"
-        table_prefix_separator = "sep"
+        table_prefix = 'table-prefix'
+        table_prefix_separator = 'sep'
         instance = _Instance()
 
         connection = self._make_one(
             autoconnect=autoconnect,
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
-            instance=instance,
-        )
+            instance=instance)
         self.assertTrue(connection._instance is instance)
         self.assertEqual(connection.table_prefix, table_prefix)
-        self.assertEqual(connection.table_prefix_separator, table_prefix_separator)
+        self.assertEqual(connection.table_prefix_separator,
+                         table_prefix_separator)
 
     def test_constructor_with_unknown_argument(self):
         instance = _Instance()
         with self.assertRaises(TypeError):
-            self._make_one(instance=instance, unknown="foo")
+            self._make_one(instance=instance, unknown='foo')
 
     def test_constructor_with_legacy_args(self):
         import warnings
@@ -130,20 +129,16 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()
         with warnings.catch_warnings(record=True) as warned:
             self._make_one(
-                instance=instance,
-                host=object(),
-                port=object(),
-                compat=object(),
-                transport=object(),
-                protocol=object(),
-            )
+                instance=instance, host=object(),
+                port=object(), compat=object(),
+                transport=object(), protocol=object())
 
         self.assertEqual(len(warned), 1)
-        self.assertIn("host", str(warned[0]))
-        self.assertIn("port", str(warned[0]))
-        self.assertIn("compat", str(warned[0]))
-        self.assertIn("transport", str(warned[0]))
-        self.assertIn("protocol", str(warned[0]))
+        self.assertIn('host', str(warned[0]))
+        self.assertIn('port', str(warned[0]))
+        self.assertIn('compat', str(warned[0]))
+        self.assertIn('transport', str(warned[0]))
+        self.assertIn('protocol', str(warned[0]))
 
     def test_constructor_non_string_prefix(self):
         table_prefix = object()
@@ -156,30 +151,30 @@ class TestConnection(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             self._make_one(
-                autoconnect=False, table_prefix_separator=table_prefix_separator
-            )
+                autoconnect=False,
+                table_prefix_separator=table_prefix_separator)
 
     def test__table_name_with_prefix_set(self):
-        table_prefix = "table-prefix"
-        table_prefix_separator = "<>"
+        table_prefix = 'table-prefix'
+        table_prefix_separator = '<>'
         instance = _Instance()
 
         connection = self._make_one(
             autoconnect=False,
             table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
-            instance=instance,
-        )
+            instance=instance)
 
-        name = "some-name"
+        name = 'some-name'
         prefixed = connection._table_name(name)
-        self.assertEqual(prefixed, table_prefix + table_prefix_separator + name)
+        self.assertEqual(prefixed,
+                         table_prefix + table_prefix_separator + name)
 
     def test__table_name_with_no_prefix_set(self):
         instance = _Instance()
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "some-name"
+        name = 'some-name'
         prefixed = connection._table_name(name)
         self.assertEqual(prefixed, name)
 
@@ -189,7 +184,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
         table = connection.table(name)
 
         self.assertTrue(isinstance(table, Table))
@@ -200,16 +195,14 @@ class TestConnection(unittest.TestCase):
         from google.cloud.happybase.table import Table
 
         instance = _Instance()  # Avoid implicit environ check.
-        table_prefix = "table-prefix"
-        table_prefix_separator = "<>"
+        table_prefix = 'table-prefix'
+        table_prefix_separator = '<>'
         connection = self._make_one(
-            autoconnect=False,
-            table_prefix=table_prefix,
+            autoconnect=False, table_prefix=table_prefix,
             table_prefix_separator=table_prefix_separator,
-            instance=instance,
-        )
+            instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
         table = connection.table(name, use_prefix=use_prefix)
 
         self.assertTrue(isinstance(table, Table))
@@ -229,11 +222,12 @@ class TestConnection(unittest.TestCase):
     def test_tables(self):
         from google.cloud.bigtable.table import Table
 
-        table_name1 = "table-name1"
-        table_name2 = "table-name2"
-        instance = _Instance(
-            list_tables_result=[Table(table_name1, None), Table(table_name2, None)]
-        )
+        table_name1 = 'table-name1'
+        table_name2 = 'table-name2'
+        instance = _Instance(list_tables_result=[
+            Table(table_name1, None),
+            Table(table_name2, None),
+        ])
         connection = self._make_one(autoconnect=False, instance=instance)
         result = connection.tables()
         self.assertEqual(result, [table_name1, table_name2])
@@ -241,21 +235,20 @@ class TestConnection(unittest.TestCase):
     def test_tables_with_prefix(self):
         from google.cloud.bigtable.table import Table
 
-        table_prefix = "prefix"
-        table_prefix_separator = "<>"
-        unprefixed_table_name1 = "table-name1"
+        table_prefix = 'prefix'
+        table_prefix_separator = '<>'
+        unprefixed_table_name1 = 'table-name1'
 
-        table_name1 = table_prefix + table_prefix_separator + unprefixed_table_name1
-        table_name2 = "table-name2"
-        instance = _Instance(
-            list_tables_result=[Table(table_name1, None), Table(table_name2, None)]
-        )
+        table_name1 = (table_prefix + table_prefix_separator +
+                       unprefixed_table_name1)
+        table_name2 = 'table-name2'
+        instance = _Instance(list_tables_result=[
+            Table(table_name1, None),
+            Table(table_name2, None),
+        ])
         connection = self._make_one(
-            autoconnect=False,
-            instance=instance,
-            table_prefix=table_prefix,
-            table_prefix_separator=table_prefix_separator,
-        )
+            autoconnect=False, instance=instance, table_prefix=table_prefix,
+            table_prefix_separator=table_prefix_separator)
         result = connection.tables()
         self.assertEqual(result, [unprefixed_table_name1])
 
@@ -269,18 +262,18 @@ class TestConnection(unittest.TestCase):
             called_options.append(option)
             return mock_gc_rule
 
-        name = "table-name"
-        col_fam1 = "cf1"
+        name = 'table-name'
+        col_fam1 = 'cf1'
         col_fam_option1 = object()
-        col_fam2 = u"cf2"
+        col_fam2 = u'cf2'
         col_fam_option2 = object()
-        col_fam3 = b"cf3"
+        col_fam3 = b'cf3'
         col_fam_option3 = object()
         families = {
             col_fam1: col_fam_option1,
             # A trailing colon is also allowed.
-            col_fam2 + ":": col_fam_option2,
-            col_fam3 + b":": col_fam_option3,
+            col_fam2 + ':': col_fam_option2,
+            col_fam3 + b':': col_fam_option3,
         }
 
         tables_created = []
@@ -291,7 +284,7 @@ class TestConnection(unittest.TestCase):
             return result
 
         patch = mock.patch.multiple(
-            "google.cloud.happybase.connection",
+            'google.cloud.happybase.connection',
             _LowLevelTable=make_table,
             _parse_family_option=mock_parse_family_option,
         )
@@ -307,18 +300,17 @@ class TestConnection(unittest.TestCase):
         # Check if our mock was called twice, but we don't know the order.
         self.assertEqual(
             set(called_options),
-            set([col_fam_option1, col_fam_option2, col_fam_option3]),
-        )
+            set([col_fam_option1, col_fam_option2, col_fam_option3]))
 
         col_fam_dict = table_instance.col_fam_dict
-        expected_cf_list = ["cf1", "cf2", "cf3"]
+        expected_cf_list = ['cf1', 'cf2', 'cf3']
         self.assertEqual(sorted(col_fam_dict), expected_cf_list)
 
     def test_create_table_bad_type(self):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
         families = None
         with self.assertRaises(TypeError):
             connection.create_table(name, families)
@@ -327,7 +319,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
         families = {}
         with self.assertRaises(ValueError):
             connection.create_table(name, families)
@@ -339,14 +331,15 @@ class TestConnection(unittest.TestCase):
         tables_created = []
 
         def make_table(*args, **kwargs):
-            kwargs["create_error"] = err_val
+            kwargs['create_error'] = err_val
             result = _MockLowLevelTable(*args, **kwargs)
             tables_created.append(result)
             return result
 
-        name = "table-name"
-        families = {"foo": {}}
-        with mock.patch("google.cloud.happybase.connection._LowLevelTable", make_table):
+        name = 'table-name'
+        families = {'foo': {}}
+        with mock.patch('google.cloud.happybase.connection._LowLevelTable',
+                        make_table):
             with self.assertRaises(err_type):
                 connection.create_table(name, families)
 
@@ -358,16 +351,15 @@ class TestConnection(unittest.TestCase):
         from grpc.framework.interfaces.face import face
         from google.cloud.happybase.connection import AlreadyExists
 
-        err_val = face.NetworkError(
-            None, None, interfaces.StatusCode.ALREADY_EXISTS, None
-        )
+        err_val = face.NetworkError(None, None,
+                                    interfaces.StatusCode.ALREADY_EXISTS, None)
         self._create_table_error_helper(err_val, AlreadyExists)
 
     def test_create_table_connection_error(self):
         from grpc.beta import interfaces
         from grpc.framework.interfaces.face import face
-
-        err_val = face.NetworkError(None, None, interfaces.StatusCode.INTERNAL, None)
+        err_val = face.NetworkError(None, None,
+                                    interfaces.StatusCode.INTERNAL, None)
         self._create_table_error_helper(err_val, face.NetworkError)
 
     def test_create_table_other_error(self):
@@ -384,8 +376,9 @@ class TestConnection(unittest.TestCase):
             tables_created.append(result)
             return result
 
-        name = "table-name"
-        with mock.patch("google.cloud.happybase.connection._LowLevelTable", make_table):
+        name = 'table-name'
+        with mock.patch('google.cloud.happybase.connection._LowLevelTable',
+                        make_table):
             connection.delete_table(name, disable=disable)
 
         # Just one table would have been created.
@@ -414,7 +407,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
 
         with warnings.catch_warnings(record=True) as warned:
             connection.enable_table(name)
@@ -429,7 +422,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
 
         with warnings.catch_warnings(record=True) as warned:
             connection.disable_table(name)
@@ -444,7 +437,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
 
         with warnings.catch_warnings(record=True) as warned:
             result = connection.is_table_enabled(name)
@@ -460,7 +453,7 @@ class TestConnection(unittest.TestCase):
         instance = _Instance()  # Avoid implicit environ check.
         connection = self._make_one(autoconnect=False, instance=instance)
 
-        name = "table-name"
+        name = 'table-name'
 
         with warnings.catch_warnings(record=True) as warned:
             connection.compact_table(name)
@@ -470,9 +463,9 @@ class TestConnection(unittest.TestCase):
 
 
 class Test__parse_family_option(unittest.TestCase):
+
     def _call_fut(self, option):
         from google.cloud.happybase.connection import _parse_family_option
-
         return _parse_family_option(option)
 
     def test_dictionary_no_keys(self):
@@ -488,19 +481,19 @@ class Test__parse_family_option(unittest.TestCase):
     def test_dictionary_bad_key(self):
         import warnings
 
-        option = {"badkey": None}
+        option = {'badkey': None}
         with warnings.catch_warnings(record=True) as warned:
             result = self._call_fut(option)
 
         self.assertEqual(result, None)
         self.assertEqual(len(warned), 1)
-        self.assertIn("badkey", str(warned[0]))
+        self.assertIn('badkey', str(warned[0]))
 
     def test_dictionary_versions_key(self):
         from google.cloud.bigtable.column_family import MaxVersionsGCRule
 
         versions = 42
-        option = {"max_versions": versions}
+        option = {'max_versions': versions}
         result = self._call_fut(option)
 
         gc_rule = MaxVersionsGCRule(versions)
@@ -512,7 +505,7 @@ class Test__parse_family_option(unittest.TestCase):
 
         time_to_live = 24 * 60 * 60
         max_age = datetime.timedelta(days=1)
-        option = {"time_to_live": time_to_live}
+        option = {'time_to_live': time_to_live}
         result = self._call_fut(option)
 
         gc_rule = MaxAgeGCRule(max_age)
@@ -526,7 +519,10 @@ class Test__parse_family_option(unittest.TestCase):
 
         versions = 42
         time_to_live = 24 * 60 * 60
-        option = {"max_versions": versions, "time_to_live": time_to_live}
+        option = {
+            'max_versions': versions,
+            'time_to_live': time_to_live,
+        }
         result = self._call_fut(option)
 
         max_age = datetime.timedelta(days=1)
@@ -545,11 +541,12 @@ class Test__parse_family_option(unittest.TestCase):
 
 
 class _Client(object):
+
     def __init__(self, *args, **kwargs):
-        self.instances = kwargs.pop("instances", [])
+        self.instances = kwargs.pop('instances', [])
         for instance in self.instances:
             instance.client = self
-        self.failed_locations = kwargs.pop("failed_locations", [])
+        self.failed_locations = kwargs.pop('failed_locations', [])
         self.args = args
         self.kwargs = kwargs
 
@@ -558,6 +555,7 @@ class _Client(object):
 
 
 class _Instance(object):
+
     def __init__(self, list_tables_result=()):
         # Included to support Connection.__del__
         self._client = _Client()
@@ -568,10 +566,11 @@ class _Instance(object):
 
 
 class _MockLowLevelTable(object):
+
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.create_error = kwargs.get("create_error")
+        self.create_error = kwargs.get('create_error')
         self.delete_calls = 0
         self.create_calls = 0
         self.col_fam_dict = {}

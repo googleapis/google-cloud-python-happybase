@@ -47,8 +47,8 @@ class RetryBase(object):
     :type logger: logging.Logger instance
     :param logger: Logger to use. If None, print.
     """
-
-    def __init__(self, max_tries=MAX_TRIES, delay=DELAY, backoff=BACKOFF, logger=None):
+    def __init__(self, max_tries=MAX_TRIES, delay=DELAY, backoff=BACKOFF,
+                 logger=None):
         self.max_tries = max_tries
         self.delay = delay
         self.backoff = backoff
@@ -79,16 +79,9 @@ class RetryErrors(RetryBase):
     :type logger: logging.Logger instance
     :param logger: Logger to use. If None, print.
     """
-
-    def __init__(
-        self,
-        exception,
-        error_predicate=_retry_all,
-        max_tries=MAX_TRIES,
-        delay=DELAY,
-        backoff=BACKOFF,
-        logger=None,
-    ):
+    def __init__(self, exception, error_predicate=_retry_all,
+                 max_tries=MAX_TRIES, delay=DELAY, backoff=BACKOFF,
+                 logger=None):
         super(RetryErrors, self).__init__(max_tries, delay, backoff, logger)
         self.exception = exception
         self.error_predicate = error_predicate
@@ -105,11 +98,9 @@ class RetryErrors(RetryBase):
                     if not self.error_predicate(caught_exception):
                         raise
 
-                    delay = self.delay * self.backoff ** tries
-                    msg = "%s, Trying again in %d seconds..." % (
-                        caught_exception,
-                        delay,
-                    )
+                    delay = self.delay * self.backoff**tries
+                    msg = ("%s, Trying again in %d seconds..." %
+                           (caught_exception, delay))
                     self.logger(msg)
 
                     time.sleep(delay)
@@ -139,15 +130,9 @@ class RetryResult(RetryBase):
     :type logger: logging.Logger instance
     :param logger: Logger to use. If None, print.
     """
-
-    def __init__(
-        self,
-        result_predicate,
-        max_tries=MAX_TRIES,
-        delay=DELAY,
-        backoff=BACKOFF,
-        logger=None,
-    ):
+    def __init__(self, result_predicate,
+                 max_tries=MAX_TRIES, delay=DELAY, backoff=BACKOFF,
+                 logger=None):
         super(RetryResult, self).__init__(max_tries, delay, backoff, logger)
         self.result_predicate = result_predicate
 
@@ -160,11 +145,9 @@ class RetryResult(RetryBase):
                 if self.result_predicate(result):
                     return result
 
-                delay = self.delay * self.backoff ** tries
+                delay = self.delay * self.backoff**tries
                 msg = "%s. Trying again in %d seconds..." % (
-                    self.result_predicate.__name__,
-                    delay,
-                )
+                    self.result_predicate.__name__, delay,)
                 self.logger(msg)
 
                 time.sleep(delay)
@@ -194,20 +177,15 @@ class RetryInstanceState(RetryBase):
     :type logger: logging.Logger instance
     :param logger: Logger to use. If None, print.
     """
-
-    def __init__(
-        self,
-        instance_predicate,
-        max_tries=MAX_TRIES,
-        delay=DELAY,
-        backoff=BACKOFF,
-        logger=None,
-    ):
-        super(RetryInstanceState, self).__init__(max_tries, delay, backoff, logger)
+    def __init__(self, instance_predicate,
+                 max_tries=MAX_TRIES, delay=DELAY, backoff=BACKOFF,
+                 logger=None):
+        super(RetryInstanceState, self).__init__(
+            max_tries, delay, backoff, logger)
         self.instance_predicate = instance_predicate
 
     def __call__(self, to_wrap):
-        instance = to_wrap.__self__  # only instance methods allowed
+        instance = to_wrap.__self__   # only instance methods allowed
 
         @wraps(to_wrap)
         def wrapped_function(*args, **kwargs):
@@ -217,11 +195,9 @@ class RetryInstanceState(RetryBase):
                 if self.instance_predicate(instance):
                     return result
 
-                delay = self.delay * self.backoff ** tries
+                delay = self.delay * self.backoff**tries
                 msg = "%s. Trying again in %d seconds..." % (
-                    self.instance_predicate.__name__,
-                    delay,
-                )
+                    self.instance_predicate.__name__, delay,)
                 self.logger(msg)
 
                 time.sleep(delay)

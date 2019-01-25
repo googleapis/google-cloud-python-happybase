@@ -47,19 +47,17 @@ DEFAULT_TRANSPORT = None
 DEFAULT_COMPAT = None
 DEFAULT_PROTOCOL = None
 
-_LEGACY_ARGS = frozenset(("host", "port", "compat", "transport", "protocol"))
-_BASE_DISABLE = "Cloud Bigtable has no concept of enabled / disabled tables."
-_DISABLE_DELETE_MSG = (
-    "The disable argument should not be used in " "delete_table(). "
-) + _BASE_DISABLE
-_ENABLE_TMPL = "Connection.enable_table(%r) was called, but " + _BASE_DISABLE
-_DISABLE_TMPL = "Connection.disable_table(%r) was called, but " + _BASE_DISABLE
-_IS_ENABLED_TMPL = "Connection.is_table_enabled(%r) was called, but " + _BASE_DISABLE
-_COMPACT_TMPL = (
-    "Connection.compact_table(%r, major=%r) was called, but the "
-    "Cloud Bigtable API handles table compactions automatically "
-    "and does not expose an API for it."
-)
+_LEGACY_ARGS = frozenset(('host', 'port', 'compat', 'transport', 'protocol'))
+_BASE_DISABLE = 'Cloud Bigtable has no concept of enabled / disabled tables.'
+_DISABLE_DELETE_MSG = ('The disable argument should not be used in '
+                       'delete_table(). ') + _BASE_DISABLE
+_ENABLE_TMPL = 'Connection.enable_table(%r) was called, but ' + _BASE_DISABLE
+_DISABLE_TMPL = 'Connection.disable_table(%r) was called, but ' + _BASE_DISABLE
+_IS_ENABLED_TMPL = ('Connection.is_table_enabled(%r) was called, but ' +
+                    _BASE_DISABLE)
+_COMPACT_TMPL = ('Connection.compact_table(%r, major=%r) was called, but the '
+                 'Cloud Bigtable API handles table compactions automatically '
+                 'and does not expose an API for it.')
 
 
 def _get_instance():
@@ -79,23 +77,20 @@ def _get_instance():
     :raises ValueError: if there is a failed location or any number of
                         instances other than one.
     """
-    client_kwargs = {"admin": True}
+    client_kwargs = {'admin': True}
     client = Client(**client_kwargs)
     instances, failed_locations = client.list_instances()
 
     if failed_locations:
-        raise ValueError(
-            "Determining instance via ListInstances encountered " "failed locations."
-        )
+        raise ValueError('Determining instance via ListInstances encountered '
+                         'failed locations.')
     num_instances = len(instances)
     if num_instances == 0:
-        raise ValueError("This client doesn't have access to any instances.")
+        raise ValueError('This client doesn\'t have access to any instances.')
     if num_instances > 1:
-        raise ValueError(
-            "This client has access to more than one instance. "
-            "Please directly pass the instance you'd "
-            "like to use."
-        )
+        raise ValueError('This client has access to more than one instance. '
+                         'Please directly pass the instance you\'d '
+                         'like to use.')
     return instances[0]
 
 
@@ -137,31 +132,18 @@ class Connection(object):
 
     _instance = None
 
-    def __init__(
-        self,
-        autoconnect=True,
-        table_prefix=None,
-        table_prefix_separator="_",
-        instance=None,
-        **kwargs
-    ):
+    def __init__(self, autoconnect=True, table_prefix=None,
+                 table_prefix_separator='_', instance=None, **kwargs):
         self._handle_legacy_args(kwargs)
         if table_prefix is not None:
             if not isinstance(table_prefix, six.string_types):
-                raise TypeError(
-                    "table_prefix must be a string",
-                    "received",
-                    table_prefix,
-                    type(table_prefix),
-                )
+                raise TypeError('table_prefix must be a string', 'received',
+                                table_prefix, type(table_prefix))
 
         if not isinstance(table_prefix_separator, six.string_types):
-            raise TypeError(
-                "table_prefix_separator must be a string",
-                "received",
-                table_prefix_separator,
-                type(table_prefix_separator),
-            )
+            raise TypeError('table_prefix_separator must be a string',
+                            'received', table_prefix_separator,
+                            type(table_prefix_separator))
 
         self.table_prefix = table_prefix
         self.table_prefix_separator = table_prefix_separator
@@ -187,17 +169,15 @@ class Connection(object):
         """
         common_args = _LEGACY_ARGS.intersection(six.iterkeys(arguments_dict))
         if common_args:
-            all_args = ", ".join(common_args)
-            message = (
-                "The HappyBase legacy arguments %s were used. These "
-                "arguments are unused by google-cloud." % (all_args,)
-            )
+            all_args = ', '.join(common_args)
+            message = ('The HappyBase legacy arguments %s were used. These '
+                       'arguments are unused by google-cloud.' % (all_args,))
             warnings.warn(message)
         for arg_name in common_args:
             arguments_dict.pop(arg_name)
         if arguments_dict:
             unexpected_names = arguments_dict.keys()
-            raise TypeError("Received unexpected arguments", unexpected_names)
+            raise TypeError('Received unexpected arguments', unexpected_names)
 
     def open(self):
         """Open the underlying transport to Cloud Bigtable.
@@ -259,17 +239,15 @@ class Connection(object):
         :returns: List of string table names.
         """
         low_level_table_instances = self._instance.list_tables()
-        table_names = [
-            table_instance.table_id for table_instance in low_level_table_instances
-        ]
+        table_names = [table_instance.table_id
+                       for table_instance in low_level_table_instances]
 
         # Filter using prefix, and strip prefix from names
         if self.table_prefix is not None:
-            prefix = self._table_name("")
+            prefix = self._table_name('')
             offset = len(prefix)
-            table_names = [
-                name[offset:] for name in table_names if name.startswith(prefix)
-            ]
+            table_names = [name[offset:] for name in table_names
+                           if name.startswith(prefix)]
 
         return table_names
 
@@ -312,19 +290,18 @@ class Connection(object):
                               table exists.
         """
         if not isinstance(families, dict):
-            raise TypeError("families arg must be a dictionary")
+            raise TypeError('families arg must be a dictionary')
 
         if not families:
-            raise ValueError(
-                "Cannot create table %r (no column " "families specified)" % (name,)
-            )
+            raise ValueError('Cannot create table %r (no column '
+                             'families specified)' % (name,))
 
         # Parse all keys before making any API requests.
         gc_rule_dict = {}
         for column_family_name, option in families.items():
             if isinstance(column_family_name, six.binary_type):
-                column_family_name = column_family_name.decode("utf-8")
-            if column_family_name.endswith(":"):
+                column_family_name = column_family_name.decode('utf-8')
+            if column_family_name.endswith(':'):
                 column_family_name = column_family_name[:-1]
             gc_rule_dict[column_family_name] = _parse_family_option(option)
 
@@ -445,19 +422,17 @@ def _parse_family_option(option):
     """
     result = option
     if isinstance(result, dict):
-        if not set(result.keys()) <= set(["max_versions", "time_to_live"]):
-            all_keys = ", ".join(repr(key) for key in result.keys())
-            warning_msg = (
-                "Cloud Bigtable only supports max_versions and "
-                "time_to_live column family settings. "
-                "Received: %s" % (all_keys,)
-            )
+        if not set(result.keys()) <= set(['max_versions', 'time_to_live']):
+            all_keys = ', '.join(repr(key) for key in result.keys())
+            warning_msg = ('Cloud Bigtable only supports max_versions and '
+                           'time_to_live column family settings. '
+                           'Received: %s' % (all_keys,))
             warnings.warn(warning_msg)
 
-        max_num_versions = result.get("max_versions")
+        max_num_versions = result.get('max_versions')
         max_age = None
-        if "time_to_live" in result:
-            max_age = datetime.timedelta(seconds=result["time_to_live"])
+        if 'time_to_live' in result:
+            max_age = datetime.timedelta(seconds=result['time_to_live'])
 
         versions_rule = age_rule = None
         if max_num_versions is not None:

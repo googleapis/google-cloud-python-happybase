@@ -62,22 +62,21 @@ class ConnectionPool(object):
              :class:`ValueError <exceptions.ValueError>` if ``size``
              is not positive.
     """
-
     def __init__(self, size, **kwargs):
         if not isinstance(size, six.integer_types):
-            raise TypeError("Pool size arg must be an integer")
+            raise TypeError('Pool size arg must be an integer')
 
         if size < _MIN_POOL_SIZE:
-            raise ValueError("Pool size must be positive")
+            raise ValueError('Pool size must be positive')
 
         self._lock = threading.Lock()
         self._queue = six.moves.queue.LifoQueue(maxsize=size)
         self._thread_connections = threading.local()
 
         connection_kwargs = kwargs
-        connection_kwargs["autoconnect"] = False
-        if "instance" not in connection_kwargs:
-            connection_kwargs["instance"] = _get_instance()
+        connection_kwargs['autoconnect'] = False
+        if 'instance' not in connection_kwargs:
+            connection_kwargs['instance'] = _get_instance()
 
         for _ in six.moves.range(size):
             connection = Connection(**connection_kwargs)
@@ -98,9 +97,8 @@ class ConnectionPool(object):
         try:
             return self._queue.get(block=True, timeout=timeout)
         except six.moves.queue.Empty:
-            raise NoConnectionsAvailable(
-                "No connection available from pool " "within specified timeout"
-            )
+            raise NoConnectionsAvailable('No connection available from pool '
+                                         'within specified timeout')
 
     @contextlib.contextmanager
     def connection(self, timeout=None):
@@ -127,7 +125,7 @@ class ConnectionPool(object):
                  retrieved from the pool before the ``timeout`` (only if
                  a timeout is specified).
         """
-        connection = getattr(self._thread_connections, "current", None)
+        connection = getattr(self._thread_connections, 'current', None)
 
         retrieved_new_cnxn = False
         if connection is None:

@@ -44,9 +44,10 @@ class EmulatorCreds(object):
 def check_environ():
     err_msg = None
     if CREDENTIALS is None:
-        err_msg = "\nMissing variables: " + TEST_CREDENTIALS
+        err_msg = '\nMissing variables: ' + TEST_CREDENTIALS
     elif not os.path.isfile(CREDENTIALS):
-        err_msg = "\nThe %s path %r is not a file." % (TEST_CREDENTIALS, CREDENTIALS)
+        err_msg = '\nThe %s path %r is not a file.' % (TEST_CREDENTIALS,
+                                                       CREDENTIALS)
 
     if err_msg is not None:
         msg = ENVIRON_ERROR_MSG + err_msg
@@ -54,14 +55,15 @@ def check_environ():
         sys.exit(1)
 
 
-def unique_resource_id(delimiter="_"):
+def unique_resource_id(delimiter='_'):
     """A unique identifier for a resource.
 
     Intended to help locate resources created in particular
     testing environments and at particular times.
     """
-    build_id = os.getenv("TRAVIS_BUILD_ID", "")
-    if build_id == "":
-        return "%s%d" % (delimiter, 1000 * time.time())
+    build_id = os.getenv('TRAVIS_BUILD_ID', '')
+    if build_id == '':
+        return '%s%d' % (delimiter, 1000 * time.time())
 
-    return "%s%s%s%d" % (delimiter, build_id, delimiter, time.time())
+    return '%s%s%s%d' % (delimiter, build_id,
+                         delimiter, time.time())

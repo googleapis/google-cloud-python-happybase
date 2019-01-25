@@ -27,7 +27,8 @@ env | grep KOKORO
 # TODO: Set up directory with service account credentials.
 export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/service-account.json
 
-# Setup project id.
+# TODO: Setup project id.
 export PROJECT_ID=$(cat "${KOKORO_GFILE_DIR}/project-id.json")
 
+python3.6 -m pip install nox
 python3.6 -m nox -s lint tests system_tests cover

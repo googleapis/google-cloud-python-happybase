@@ -23,7 +23,6 @@ from google.cloud.bigtable import client as client_mod
 from google.cloud.happybase.connection import Connection
 from google.cloud.exceptions import TooManyRequests
 from google.cloud._helpers import UTC
-from google.api_core import exceptions
 
 from retry import RetryResult
 from retry import RetryErrors
@@ -110,7 +109,6 @@ def set_connection():
     operation = instance.create(clusters=[cluster])
     operation.result(10)
     Config.CONNECTION = Connection(instance=instance)
-    print(Config.CONNECTION)
 
 
 def setUpModule():
@@ -699,14 +697,17 @@ class TestTable_put(BaseTableTest):
         value1 = 'hello world!'
         COL1_not_encoded = COL_FAM1 + ':greetings'
         row1_data = {COL1_not_encoded: value1}
+        row1_data_encoded = {COL1_not_encoded.encode('utf-8'): value1.encode('utf-8')}
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
-        with self.assertRaises(exceptions.InvalidArgument):
-            # when using a non-encoded column name, an InvalidArgument is
-            # raised with InvalidArgument: 400 No mutations provided
-            Config.TABLE.put(ROW_KEY1, row1_data)
 
-        
+        Config.TABLE.put(ROW_KEY1, row1_data)
+
+        # Verify that we have an object returned, but with values encoded.
+        row1 = Config.TABLE.row(ROW_KEY1)
+        self.assertEqual(row1, row1_data_encoded)
+
+
 class TestTable_delete(BaseTableTest):
 
     def test_delete(self):

@@ -692,12 +692,13 @@ class TestTable_put(BaseTableTest):
                                      COL2: (value2, ts)}
         self.assertEqual(row1, row1_data_with_timestamps)
 
-
     def test_put_not_encoded(self):
         value1 = 'hello world!'
         COL1_not_encoded = COL_FAM1 + ':greetings'
         row1_data = {COL1_not_encoded: value1}
-        row1_data_encoded = {COL1_not_encoded.encode('utf-8'): value1.encode('utf-8')}
+        row1_data_encoded = {
+            COL1_not_encoded.encode('utf-8'): value1.encode('utf-8')
+        }
         # Need to clean-up row1 after.
         self.rows_to_delete.append(ROW_KEY1)
 

@@ -44,14 +44,14 @@ def blacken(session):
         "system_tests",
     )
 
-@nox.session(python=['2.7', '3.4', '3.5', '3.6'])
+@nox.session(python=['2.7', '3.4', '3.5', '3.6', '3.7'])
 def tests(session):
     session.install('pytest', 'mock')
     session.install('.')
     session.run('py.test', '--quiet', 'unit_tests')
 
-@nox.session(python=['2.7', '3.6'])
+@nox.session(python=['2.7', '3.7'])
 def system_tests(session):
     session.install('pytest', 'mock')
     session.install('.')
-    session.run('py.test', '--quiet', 'system_tests/test_happybase.py')
+    session.run('py.test', '--quiet', 'system_tests/happybase.py')

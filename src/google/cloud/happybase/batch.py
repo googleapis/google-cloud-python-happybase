@@ -162,9 +162,11 @@ class Batch(object):
         column_pairs = _get_column_pairs(six.iterkeys(data),
                                          require_qualifier=True)
 
-        for column_family_id, column_qualifier in column_pairs:
-            value = data[(column_family_id + ':' +
-                          column_qualifier).encode('utf-8')]
+        # use key that was passed. Reconstructing it can cause it to not
+        # be found if there is an encoding difference.
+        for key, column_pair in zip(six.iterkeys(data), column_pairs):
+            column_family_id, column_qualifier = column_pair
+            value = data[key]
             row_object.set_cell(column_family_id, column_qualifier,
                                 value, timestamp=self._timestamp)
 
@@ -307,6 +309,7 @@ def _get_column_pairs(columns, require_qualifier=False):
     for column in columns:
         if isinstance(column, six.binary_type):
             column = column.decode('utf-8')
+
         # Remove trailing colons (i.e. for standalone column family).
         if column.endswith(u':'):
             column = column[:-1]
@@ -322,5 +325,4 @@ def _get_column_pairs(columns, require_qualifier=False):
             column_pairs.append(column.split(u':'))
         else:
             raise ValueError('Column contains the : separator more than once')
-
     return column_pairs

@@ -25,10 +25,10 @@ export PYTHONUNBUFFERED=1
 env | grep KOKORO
 
 # TODO: Set up directory with service account credentials.
-export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/google-cloud-python/service-account.json
+export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/service-account.json
 
 # TODO: Setup project id.
-export PROJECT_ID=$(cat "${KOKORO_GFILE_DIR}/google-cloud-python/project-id.json")
+export PROJECT_ID=$(cat "${KOKORO_GFILE_DIR}/project-id.json")
 
 python3.6 -m pip install nox
 python3.6 -m nox -s lint tests system_tests cover

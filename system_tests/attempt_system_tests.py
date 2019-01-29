@@ -58,15 +58,13 @@ from run_system_test import FailedSystemTestModule
 from run_system_test import run_module_tests
 
 
-MODULES = (
-    'happybase',
-)
+MODULES = ("happybase",)
 
 SCRIPTS_DIR = os.path.dirname(__file__)
-ROOT_DIR = os.path.abspath(os.path.join(SCRIPTS_DIR, '..'))
-ENCRYPTED_KEYFILE = os.path.join(ROOT_DIR, 'system_tests', 'key.json.enc')
-ENCRYPTED_KEY_ENV = 'encrypted_INVALID_key'
-ENCRYPTED_INIT_VECTOR_ENV = 'encrypted_INVALID_iv'
+ROOT_DIR = os.path.abspath(os.path.join(SCRIPTS_DIR, ".."))
+ENCRYPTED_KEYFILE = os.path.join(ROOT_DIR, "system_tests", "key.json.enc")
+ENCRYPTED_KEY_ENV = "encrypted_INVALID_key"
+ENCRYPTED_INIT_VECTOR_ENV = "encrypted_INVALID_iv"
 ALL_MODULES = object()  # Sentinel for argparser
 
 
@@ -80,10 +78,12 @@ def check_environment():
               is running in Travis and the second indicates if
               the current build is a non-PR for a merge to master.
     """
-    if os.getenv('TRAVIS') == 'true':
+    if os.getenv("TRAVIS") == "true":
         is_travis = True
-        non_pr = (os.getenv('TRAVIS_PULL_REQUEST') == 'false' and
-                  os.getenv('TRAVIS_BRANCH') == 'master')
+        non_pr = (
+            os.getenv("TRAVIS_PULL_REQUEST") == "false"
+            and os.getenv("TRAVIS_BRANCH") == "master"
+        )
     else:
         is_travis = non_pr = False
 
@@ -92,20 +92,27 @@ def check_environment():
 
 def decrypt_keyfile():
     """Decrypt a keyfile."""
-    print('Running in Travis during merge, decrypting stored '
-          'key file.')
+    print("Running in Travis during merge, decrypting stored " "key file.")
 
     encrypted_key = os.getenv(ENCRYPTED_KEY_ENV)
     encrypted_iv = os.getenv(ENCRYPTED_INIT_VECTOR_ENV)
     out_file = os.getenv(CREDENTIALS)
     # Convert encrypted key file into decrypted file to be used.
-    subprocess.call([
-        'openssl', 'aes-256-cbc',
-        '-K', encrypted_key,
-        '-iv', encrypted_iv,
-        '-in', ENCRYPTED_KEYFILE,
-        '-out', out_file, '-d'
-    ])
+    subprocess.call(
+        [
+            "openssl",
+            "aes-256-cbc",
+            "-K",
+            encrypted_key,
+            "-iv",
+            encrypted_iv,
+            "-in",
+            ENCRYPTED_KEYFILE,
+            "-out",
+            out_file,
+            "-d",
+        ]
+    )
 
 
 def prepare_to_run():
@@ -124,8 +131,7 @@ def prepare_to_run():
 
     # On a Travis PR, exit the program.
     if not non_pr:
-        print('Running in Travis during non-merge to master, '
-              'doing nothing.')
+        print("Running in Travis during non-merge to master, " "doing nothing.")
         sys.exit(0)
 
     # On a Travis build for a merge commit to master, decrypt.
@@ -134,12 +140,9 @@ def prepare_to_run():
 
 def get_parser():
     """Get an argument parser to determine a list of packages."""
-    parser = argparse.ArgumentParser(
-        description='google-cloud tests runner.')
-    help_msg = ('List of packages to be tested. '
-                'If left blank, tests all packages.')
-    parser.add_argument('packages', nargs='*',
-                        default=ALL_MODULES, help=help_msg)
+    parser = argparse.ArgumentParser(description="google-cloud tests runner.")
+    help_msg = "List of packages to be tested. " "If left blank, tests all packages."
+    parser.add_argument("packages", nargs="*", default=ALL_MODULES, help=help_msg)
     return parser
 
 
@@ -159,7 +162,7 @@ def get_modules():
                 invalid.append(package)
 
         if invalid:
-            msg = 'No system test for packages: ' + ', '.join(invalid)
+            msg = "No system test for packages: " + ", ".join(invalid)
             print(msg, file=sys.stderr)
             sys.exit(1)
 
@@ -181,5 +184,5 @@ def main():
     sys.exit(failed_modules)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

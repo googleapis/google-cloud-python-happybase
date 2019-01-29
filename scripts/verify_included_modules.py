@@ -25,21 +25,16 @@ import warnings
 from sphinx.ext.intersphinx import fetch_inventory
 
 
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..'))
-DOCS_DIR = os.path.join(BASE_DIR, 'docs')
-IGNORED_PREFIXES = ('test_', '_')
-IGNORED_MODULES = frozenset([
-    'google.__init__',
-    'google.cloud.__init__',
-])
-PACKAGES = (
-    'src',
-)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DOCS_DIR = os.path.join(BASE_DIR, "docs")
+IGNORED_PREFIXES = ("test_", "_")
+IGNORED_MODULES = frozenset(["google.__init__", "google.cloud.__init__"])
+PACKAGES = ("src",)
 
 
 class SphinxApp(object):
     """Mock app to interact with Sphinx helpers."""
+
     warn = warnings.warn
     srcdir = DOCS_DIR
 
@@ -56,9 +51,9 @@ def is_valid_module(filename):
     :rtype: bool
     :returns: Flag indicating if the filename is valid.
     """
-    if not filename.endswith('.py'):
+    if not filename.endswith(".py"):
         return False
-    if filename == '__init__.py':
+    if filename == "__init__.py":
         return True
     for prefix in IGNORED_PREFIXES:
         if filename.startswith(prefix):
@@ -82,8 +77,7 @@ def get_public_modules(path, base_package=None):
     result = []
     for subdir, _, files in os.walk(path):
         # Skip folders that start with _.
-        if any([part.startswith('_')
-                for part in subdir.split(os.path.sep)]):
+        if any([part.startswith("_") for part in subdir.split(os.path.sep)]):
             continue
         _, rel_dir = subdir.split(path)
         rel_dir = rel_dir.lstrip(os.path.sep)
@@ -94,48 +88,49 @@ def get_public_modules(path, base_package=None):
                 if base_package is not None:
                     rel_path = os.path.join(base_package, rel_path)
                 # Turn into a Python module rather than a file path.
-                result.append(rel_path.replace(os.path.sep, '.'))
+                result.append(rel_path.replace(os.path.sep, "."))
 
     return result
 
 
-def verify_modules(build_root='_build'):
+def verify_modules(build_root="_build"):
     """Verify modules included.
 
     :type build_root: str
     :param build_root: The root of the directory where docs are built into.
                        Defaults to ``_build``.
     """
-    object_inventory_relpath = os.path.join(build_root, 'html', 'objects.inv')
+    object_inventory_relpath = os.path.join(build_root, "html", "objects.inv")
 
-    mock_uri = ''
-    inventory = fetch_inventory(SphinxApp, mock_uri,
-                                object_inventory_relpath)
-    sphinx_mods = set(inventory['py:module'].keys())
+    mock_uri = ""
+    inventory = fetch_inventory(SphinxApp, mock_uri, object_inventory_relpath)
+    sphinx_mods = set(inventory["py:module"].keys())
 
     public_mods = set()
     for package in PACKAGES:
-        library_dir = os.path.join(BASE_DIR, package, 'google', 'cloud')
-        package_mods = get_public_modules(library_dir,
-                                          base_package='google.cloud')
+        library_dir = os.path.join(BASE_DIR, package, "google", "cloud")
+        package_mods = get_public_modules(library_dir, base_package="google.cloud")
         public_mods.update(package_mods)
 
     if not sphinx_mods <= public_mods:
         unexpected_mods = sphinx_mods - public_mods
-        message = ['Unexpected error. There were modules referenced by '
-                   'Sphinx that are not among the public modules.']
-        message.extend(['- %s' % (mod,) for mod in unexpected_mods])
-        print('\n'.join(message), file=sys.stderr)
+        message = [
+            "Unexpected error. There were modules referenced by "
+            "Sphinx that are not among the public modules."
+        ]
+        message.extend(["- %s" % (mod,) for mod in unexpected_mods])
+        print("\n".join(message), file=sys.stderr)
         sys.exit(1)
 
     undocumented_mods = public_mods - sphinx_mods
     # Remove ignored modules.
     undocumented_mods -= IGNORED_MODULES
     if undocumented_mods:
-        message_parts = ['Found undocumented public modules:']
-        message_parts.extend(['- ' + mod_name
-                              for mod_name in sorted(undocumented_mods)])
-        print('\n'.join(message_parts), file=sys.stderr)
+        message_parts = ["Found undocumented public modules:"]
+        message_parts.extend(
+            ["- " + mod_name for mod_name in sorted(undocumented_mods)]
+        )
+        print("\n".join(message_parts), file=sys.stderr)
         sys.exit(1)
 
 
@@ -145,11 +140,13 @@ def get_parser():
     :rtype: :class:`argparse.ArgumentParser`
     :returns: The parser for this script.
     """
-    description = ('Run check that all google-cloud '
-                   'modules are included in docs.')
+    description = "Run check that all google-cloud " "modules are included in docs."
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--build-root', dest='build_root',
-                        help='The root directory where docs are located.')
+    parser.add_argument(
+        "--build-root",
+        dest="build_root",
+        help="The root directory where docs are located.",
+    )
     return parser
 
 
@@ -160,5 +157,5 @@ def main():
     verify_modules(build_root=args.build_root)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

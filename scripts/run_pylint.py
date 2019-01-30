@@ -30,58 +30,46 @@ import subprocess
 import sys
 
 
-IGNORED_DIRECTORIES = [
-]
-IGNORED_FILES = [
-    os.path.join('docs', 'conf.py'),
-]
+IGNORED_DIRECTORIES = []
+IGNORED_FILES = [os.path.join("docs", "conf.py")]
 IGNORED_POSTFIXES = [
-    os.path.join('google', '__init__.py'),
-    os.path.join('google', 'cloud', '__init__.py'),
-    'setup.py',
+    os.path.join("google", "__init__.py"),
+    os.path.join("google", "cloud", "__init__.py"),
+    "setup.py",
 ]
 SCRIPTS_DIR = os.path.abspath(os.path.dirname(__file__))
-PRODUCTION_RC = os.path.join(SCRIPTS_DIR, 'pylintrc_default')
-TEST_RC = os.path.join(SCRIPTS_DIR, 'pylintrc_reduced')
+PRODUCTION_RC = os.path.join(SCRIPTS_DIR, "pylintrc_default")
+TEST_RC = os.path.join(SCRIPTS_DIR, "pylintrc_reduced")
 TEST_DISABLED_MESSAGES = [
-    'abstract-method',
-    'arguments-differ',
-    'assignment-from-no-return',
-    'attribute-defined-outside-init',
-    'exec-used',
-    'import-error',
-    'invalid-name',
-    'missing-docstring',
-    'no-init',
-    'no-self-use',
-    'superfluous-parens',
-    'too-few-public-methods',
-    'too-many-locals',
-    'too-many-public-methods',
-    'unbalanced-tuple-unpacking',
+    "abstract-method",
+    "arguments-differ",
+    "assignment-from-no-return",
+    "attribute-defined-outside-init",
+    "exec-used",
+    "import-error",
+    "invalid-name",
+    "missing-docstring",
+    "no-init",
+    "no-self-use",
+    "superfluous-parens",
+    "too-few-public-methods",
+    "too-many-locals",
+    "too-many-public-methods",
+    "unbalanced-tuple-unpacking",
 ]
-TEST_RC_ADDITIONS = {
-    'MESSAGES CONTROL': {
-        'disable': ', '.join(TEST_DISABLED_MESSAGES),
-    },
-}
-TEST_RC_REPLACEMENTS = {
-    'FORMAT': {
-        'max-module-lines': 1950,
-    },
-}
+TEST_RC_ADDITIONS = {"MESSAGES CONTROL": {"disable": ", ".join(TEST_DISABLED_MESSAGES)}}
+TEST_RC_REPLACEMENTS = {"FORMAT": {"max-module-lines": 1950}}
 
 
 def read_config(filename):
     """Reads pylintrc config onto native ConfigParser object."""
     config = ConfigParser.ConfigParser()
-    with open(filename, 'r') as file_obj:
+    with open(filename, "r") as file_obj:
         config.readfp(file_obj)
     return config
 
 
-def make_test_rc(base_rc_filename, additions_dict,
-                 replacements_dict, target_filename):
+def make_test_rc(base_rc_filename, additions_dict, replacements_dict, target_filename):
     """Combines a base rc and test additions into single file."""
     main_cfg = read_config(base_rc_filename)
 
@@ -90,25 +78,23 @@ def make_test_rc(base_rc_filename, additions_dict,
     test_cfg._sections = copy.deepcopy(main_cfg._sections)
 
     for section, opts in additions_dict.items():
-        curr_section = test_cfg._sections.setdefault(
-            section, test_cfg._dict())
+        curr_section = test_cfg._sections.setdefault(section, test_cfg._dict())
         for opt, opt_val in opts.items():
             curr_val = curr_section.get(opt)
             if curr_val is None:
-                raise KeyError('Expected to be adding to existing option.')
-            curr_val = curr_val.rstrip(',')
-            curr_section[opt] = '%s, %s' % (curr_val, opt_val)
+                raise KeyError("Expected to be adding to existing option.")
+            curr_val = curr_val.rstrip(",")
+            curr_section[opt] = "%s, %s" % (curr_val, opt_val)
 
     for section, opts in replacements_dict.items():
-        curr_section = test_cfg._sections.setdefault(
-            section, test_cfg._dict())
+        curr_section = test_cfg._sections.setdefault(section, test_cfg._dict())
         for opt, opt_val in opts.items():
             curr_val = curr_section.get(opt)
             if curr_val is None:
-                raise KeyError('Expected to be replacing existing option.')
-            curr_section[opt] = '%s' % (opt_val,)
+                raise KeyError("Expected to be replacing existing option.")
+            curr_section[opt] = "%s" % (opt_val,)
 
-    with open(target_filename, 'w') as file_obj:
+    with open(target_filename, "w") as file_obj:
         test_cfg.write(file_obj)
 
 
@@ -120,8 +106,7 @@ def valid_filename(filename):
     for directory in IGNORED_DIRECTORIES:
         if filename.startswith(directory):
             return False
-    return (filename.endswith('.py') and
-            filename not in IGNORED_FILES)
+    return filename.endswith(".py") and filename not in IGNORED_FILES
 
 
 def is_production_filename(filename):
@@ -130,7 +115,7 @@ def is_production_filename(filename):
     :rtype: bool
     :returns: Boolean indicating production status.
     """
-    return 'test' not in filename and 'docs' not in filename
+    return "test" not in filename and "docs" not in filename
 
 
 def get_files_for_linting(allow_limited=True):
@@ -159,30 +144,31 @@ def get_files_for_linting(allow_limited=True):
               linted.
     """
     diff_base = None
-    if (os.getenv('TRAVIS_BRANCH') == 'master' and
-            os.getenv('TRAVIS_PULL_REQUEST') != 'false'):
+    if (
+        os.getenv("TRAVIS_BRANCH") == "master"
+        and os.getenv("TRAVIS_PULL_REQUEST") != "false"
+    ):
         # In the case of a pull request into master, we want to
         # diff against HEAD in master.
-        diff_base = 'origin/master'
-    elif os.getenv('TRAVIS') is None:
+        diff_base = "origin/master"
+    elif os.getenv("TRAVIS") is None:
         # Only allow specified remote and branch in local dev.
-        remote = os.getenv('GOOGLE_CLOUD_REMOTE_FOR_LINT')
-        branch = os.getenv('GOOGLE_CLOUD_BRANCH_FOR_LINT')
+        remote = os.getenv("GOOGLE_CLOUD_REMOTE_FOR_LINT")
+        branch = os.getenv("GOOGLE_CLOUD_BRANCH_FOR_LINT")
         if remote is not None and branch is not None:
-            diff_base = '%s/%s' % (remote, branch)
+            diff_base = "%s/%s" % (remote, branch)
 
     if diff_base is not None and allow_limited:
-        result = subprocess.check_output(['git', 'diff', '--name-only',
-                                          diff_base])
-        print('Using files changed relative to %s:' % (diff_base,))
-        print('-' * 60)
-        print(result.rstrip('\n'))  # Don't print trailing newlines.
-        print('-' * 60)
+        result = subprocess.check_output(["git", "diff", "--name-only", diff_base])
+        print("Using files changed relative to %s:" % (diff_base,))
+        print("-" * 60)
+        print(result.rstrip("\n"))  # Don't print trailing newlines.
+        print("-" * 60)
     else:
-        print('Diff base not specified, listing all files in repository.')
-        result = subprocess.check_output(['git', 'ls-files'])
+        print("Diff base not specified, listing all files in repository.")
+        result = subprocess.check_output(["git", "ls-files"])
 
-    return result.rstrip('\n').split('\n'), diff_base
+    return result.rstrip("\n").split("\n"), diff_base
 
 
 def get_python_files(all_files=None):
@@ -222,11 +208,10 @@ def lint_fileset(filenames, rcfile, description):
     # could spit out deleted / renamed files. Another alternative could
     # be to use 'git diff --name-status' and filter out files with a
     # status of 'D'.
-    filenames = [filename for filename in filenames
-                 if os.path.exists(filename)]
+    filenames = [filename for filename in filenames if os.path.exists(filename)]
     if filenames:
-        rc_flag = '--rcfile=%s' % (rcfile,)
-        pylint_shell_command = ['pylint', rc_flag]
+        rc_flag = "--rcfile=%s" % (rcfile,)
+        pylint_shell_command = ["pylint", rc_flag]
         errors = {}  # filename -> status_code
         for filename in filenames:
             cmd = pylint_shell_command + [filename]
@@ -235,22 +220,21 @@ def lint_fileset(filenames, rcfile, description):
                 errors[filename] = status_code
         if errors:
             for filename, status_code in sorted(errors.items()):
-                print('%-30s: %d' % (filename, status_code), file=sys.stderr)
+                print("%-30s: %d" % (filename, status_code), file=sys.stderr)
             sys.exit(len(errors))
     else:
-        print('Skipping %s, no files to lint.' % (description,))
+        print("Skipping %s, no files to lint." % (description,))
 
 
 def main():
     """Script entry point. Lints both sets of files."""
-    make_test_rc(PRODUCTION_RC, TEST_RC_ADDITIONS,
-                 TEST_RC_REPLACEMENTS, TEST_RC)
+    make_test_rc(PRODUCTION_RC, TEST_RC_ADDITIONS, TEST_RC_REPLACEMENTS, TEST_RC)
     library_files, non_library_files, diff_base = get_python_files()
     if diff_base:
-        print('Checking only files which differ from base.')
-    lint_fileset(library_files, PRODUCTION_RC, 'library code')
-    lint_fileset(non_library_files, TEST_RC, 'test code')
+        print("Checking only files which differ from base.")
+    lint_fileset(library_files, PRODUCTION_RC, "library code")
+    lint_fileset(non_library_files, TEST_RC, "test code")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

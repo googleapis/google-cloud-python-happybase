@@ -692,21 +692,25 @@ class TestTable_put(BaseTableTest):
                                      COL2: (value2, ts)}
         self.assertEqual(row1, row1_data_with_timestamps)
 
-    def test_put_not_encoded(self):
+    def test_put_not_encoded_value(self):
         value1 = 'hello world!'
-        COL1_not_encoded = COL_FAM1 + ':greetings'
-        row1_data = {COL1_not_encoded: value1}
-        row1_data_encoded = {
-            COL1_not_encoded.encode('utf-8'): value1.encode('utf-8')
-        }
-        # Need to clean-up row1 after.
+        col1 = (COL_FAM1 + ':greetings').encode('utf-8')
+        row1_data = {col1: value1}
+        
+        # Need to clean-up row1 after, in case it doesn't fail.
         self.rows_to_delete.append(ROW_KEY1)
+        with self.assertRaises(ValueError):
+            Config.TABLE.put(ROW_KEY1, row1_data)
 
-        Config.TABLE.put(ROW_KEY1, row1_data)
-
-        # Verify that we have an object returned, but with values encoded.
-        row1 = Config.TABLE.row(ROW_KEY1)
-        self.assertEqual(row1, row1_data_encoded)
+    def test_put_not_encoded_column_family(self):
+        value1 = 'hello world!'.encode('utf-8')
+        col1 =  'col1:greetings'
+        row1_data = {col1: value1}
+        # Need to clean-up row1 after, in case it doesn't fail.
+        self.rows_to_delete.append(ROW_KEY1)
+        
+        with self.assertRaises(ValueError):
+            Config.TABLE.put(ROW_KEY1, row1_data)
 
 
 class TestTable_delete(BaseTableTest):

@@ -167,6 +167,8 @@ class Batch(object):
         for key, column_pair in zip(six.iterkeys(data), column_pairs):
             column_family_id, column_qualifier = column_pair
             value = data[key]
+            if not isinstance(value, six.binary_type):
+                raise ValueError("Provided value should be a byte string.")
             row_object.set_cell(column_family_id, column_qualifier,
                                 value, timestamp=self._timestamp)
 
@@ -212,7 +214,7 @@ class Batch(object):
 
         :type columns: list
         :param columns: (Optional) Iterable containing column names (as
-                        strings). Each column name can be either
+                        bytes). Each column name can be either
 
                           * an entire column family: ``fam`` or ``fam:``
                           * a single column: ``fam:col``
@@ -307,7 +309,9 @@ def _get_column_pairs(columns, require_qualifier=False):
     """
     column_pairs = []
     for column in columns:
+        encoded = False
         if isinstance(column, six.binary_type):
+            encoded = True
             column = column.decode('utf-8')
 
         # Remove trailing colons (i.e. for standalone column family).
@@ -322,6 +326,11 @@ def _get_column_pairs(columns, require_qualifier=False):
             else:
                 column_pairs.append([column, None])
         elif num_colons == 1:
+            # The SetCell RPC for BigTable allows the family_name to be a
+            # string, but qualifiers should be bytes. If we are passed a
+            # ``family_name:column_qualifer`` that isn't encoded, raise.
+            if not encoded:
+                raise ValueError("Provided column qualifier pair should be a byte string.")
             column_pairs.append(column.split(u':'))
         else:
             raise ValueError('Column contains the : separator more than once')

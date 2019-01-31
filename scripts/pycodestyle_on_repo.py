@@ -26,16 +26,15 @@ import sys
 
 def main():
     """Run pycodestyle on all Python files in the repository."""
-    git_root = subprocess.check_output(
-        ['git', 'rev-parse', '--show-toplevel']).strip()
+    git_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).strip()
     os.chdir(git_root)
-    python_files = subprocess.check_output(['git', 'ls-files', '*py'])
+    python_files = subprocess.check_output(["git", "ls-files", "*py"])
     python_files = python_files.strip().split()
 
-    pycodestyle_command = ['pycodestyle'] + python_files
+    pycodestyle_command = ["pycodestyle"] + python_files
     status_code = subprocess.call(pycodestyle_command)
     sys.exit(status_code)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

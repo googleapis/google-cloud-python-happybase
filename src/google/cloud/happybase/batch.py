@@ -27,8 +27,9 @@ from google.cloud.bigtable.row_filters import TimestampRange
 _WAL_SENTINEL = object()
 # Assumed granularity of timestamps in Cloud Bigtable.
 _ONE_MILLISECOND = datetime.timedelta(microseconds=1000)
-_WAL_WARNING = ('The wal argument (Write-Ahead-Log) is not '
-                'supported by Cloud Bigtable.')
+_WAL_WARNING = (
+    "The wal argument (Write-Ahead-Log) is not " "supported by Cloud Bigtable."
+)
 
 
 class Batch(object):
@@ -72,17 +73,24 @@ class Batch(object):
              is not positive.
     """
 
-    def __init__(self, table, timestamp=None, batch_size=None,
-                 transaction=False, wal=_WAL_SENTINEL):
+    def __init__(
+        self,
+        table,
+        timestamp=None,
+        batch_size=None,
+        transaction=False,
+        wal=_WAL_SENTINEL,
+    ):
         if wal is not _WAL_SENTINEL:
             warnings.warn(_WAL_WARNING)
 
         if batch_size is not None:
             if transaction:
-                raise TypeError('When batch_size is set, a Batch cannot be '
-                                'transactional')
+                raise TypeError(
+                    "When batch_size is set, a Batch cannot be " "transactional"
+                )
             if batch_size <= 0:
-                raise ValueError('batch_size must be positive')
+                raise ValueError("batch_size must be positive")
 
         self._table = table
         self._batch_size = batch_size
@@ -159,8 +167,7 @@ class Batch(object):
         row_object = self._get_row(row)
         # Make sure all the keys are valid before beginning
         # to add mutations.
-        column_pairs = _get_column_pairs(six.iterkeys(data),
-                                         require_qualifier=True)
+        column_pairs = _get_column_pairs(six.iterkeys(data), require_qualifier=True)
 
         # use key that was passed. Reconstructing it can cause it to not
         # be found if there is an encoding difference.
@@ -196,15 +203,18 @@ class Batch(object):
         for column_family_id, column_qualifier in column_pairs:
             if column_qualifier is None:
                 if self._delete_range is not None:
-                    raise ValueError('The Cloud Bigtable API does not support '
-                                     'adding a timestamp to '
-                                     '"DeleteFromFamily" ')
-                row_object.delete_cells(column_family_id,
-                                        columns=row_object.ALL_COLUMNS)
+                    raise ValueError(
+                        "The Cloud Bigtable API does not support "
+                        "adding a timestamp to "
+                        '"DeleteFromFamily" '
+                    )
+                row_object.delete_cells(
+                    column_family_id, columns=row_object.ALL_COLUMNS
+                )
             else:
-                row_object.delete_cell(column_family_id,
-                                       column_qualifier,
-                                       time_range=self._delete_range)
+                row_object.delete_cell(
+                    column_family_id, column_qualifier, time_range=self._delete_range
+                )
 
     def delete(self, row, columns=None, wal=_WAL_SENTINEL):
         """Delete data from a row in the table owned by this batch.
@@ -238,9 +248,11 @@ class Batch(object):
         if columns is None:
             # Delete entire row.
             if self._delete_range is not None:
-                raise ValueError('The Cloud Bigtable API does not support '
-                                 'adding a timestamp to "DeleteFromRow" '
-                                 'mutations')
+                raise ValueError(
+                    "The Cloud Bigtable API does not support "
+                    'adding a timestamp to "DeleteFromRow" '
+                    "mutations"
+                )
             row_object.delete()
             self._mutation_count += 1
         else:
@@ -315,14 +327,13 @@ def _get_column_pairs(columns, require_qualifier=False):
             column = column.decode('utf-8')
 
         # Remove trailing colons (i.e. for standalone column family).
-        if column.endswith(u':'):
+        if column.endswith(u":"):
             column = column[:-1]
-        num_colons = column.count(u':')
+        num_colons = column.count(u":")
         if num_colons == 0:
             # column is a column family.
             if require_qualifier:
-                raise ValueError('column does not contain a qualifier',
-                                 column)
+                raise ValueError("column does not contain a qualifier", column)
             else:
                 column_pairs.append([column, None])
         elif num_colons == 1:
@@ -334,4 +345,5 @@ def _get_column_pairs(columns, require_qualifier=False):
             column_pairs.append(column.split(u':'))
         else:
             raise ValueError('Column contains the : separator more than once')
+
     return column_pairs

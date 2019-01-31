@@ -301,7 +301,7 @@ def _get_column_pairs(columns, require_qualifier=False):
 
     :type columns: list
     :param columns: Iterable containing column names (as
-                    strings). Each column name can be either
+                    bytes). Each column name can be either
 
                       * an entire column family: ``fam`` or ``fam:``
                       * a single column: ``fam:col``
@@ -334,7 +334,7 @@ def _get_column_pairs(columns, require_qualifier=False):
         if num_colons == 0:
             # column is a column family.
             if require_qualifier:
-                raise ValueError("column does not contain a qualifier", column)
+                raise ValueError("Column does not contain a qualifier", column)
             else:
                 column_pairs.append([column, None])
         elif num_colons == 1:
@@ -343,7 +343,7 @@ def _get_column_pairs(columns, require_qualifier=False):
             # ``family_name:column_qualifer`` that isn't encoded, raise.
             if not encoded:
                 raise ValueError(
-                    "Provided column qualifier pair should be a byte string."
+                    "Column expected to be ``bytes`` when specifying a single column."
                 )
             column_pairs.append(column.split(u":"))
         else:

@@ -176,8 +176,9 @@ class Batch(object):
             value = data[key]
             if not isinstance(value, six.binary_type):
                 raise ValueError("Provided value should be a byte string.")
-            row_object.set_cell(column_family_id, column_qualifier,
-                                value, timestamp=self._timestamp)
+            row_object.set_cell(
+                column_family_id, column_qualifier, value, timestamp=self._timestamp
+            )
 
         self._mutation_count += len(data)
         self._try_send()
@@ -324,7 +325,7 @@ def _get_column_pairs(columns, require_qualifier=False):
         encoded = False
         if isinstance(column, six.binary_type):
             encoded = True
-            column = column.decode('utf-8')
+            column = column.decode("utf-8")
 
         # Remove trailing colons (i.e. for standalone column family).
         if column.endswith(u":"):
@@ -341,9 +342,11 @@ def _get_column_pairs(columns, require_qualifier=False):
             # string, but qualifiers should be bytes. If we are passed a
             # ``family_name:column_qualifer`` that isn't encoded, raise.
             if not encoded:
-                raise ValueError("Provided column qualifier pair should be a byte string.")
-            column_pairs.append(column.split(u':'))
+                raise ValueError(
+                    "Provided column qualifier pair should be a byte string."
+                )
+            column_pairs.append(column.split(u":"))
         else:
-            raise ValueError('Column contains the : separator more than once')
+            raise ValueError("Column contains the : separator more than once")
 
     return column_pairs

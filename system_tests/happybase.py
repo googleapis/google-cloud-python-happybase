@@ -655,22 +655,22 @@ class TestTable_put(BaseTableTest):
         self.assertEqual(row1, row1_data_with_timestamps)
 
     def test_put_not_encoded_value(self):
-        value1 = "hello world!"
-        col1 = (COL_FAM1 + ":greetings").encode("utf-8")
+        value1 = 'hello world!'
+        col1 = (COL_FAM1 + ':greetings').encode('utf-8')
         row1_data = {col1: value1}
-
+        
         # Need to clean-up row1 after, in case it doesn't fail.
         self.rows_to_delete.append(ROW_KEY1)
         with self.assertRaises(ValueError):
             Config.TABLE.put(ROW_KEY1, row1_data)
 
     def test_put_not_encoded_column_family(self):
-        value1 = "hello world!".encode("utf-8")
-        col1 = "col1:greetings"
+        value1 = 'hello world!'.encode('utf-8')
+        col1 =  'col1:greetings'
         row1_data = {col1: value1}
         # Need to clean-up row1 after, in case it doesn't fail.
         self.rows_to_delete.append(ROW_KEY1)
-
+        
         with self.assertRaises(ValueError):
             Config.TABLE.put(ROW_KEY1, row1_data)
 

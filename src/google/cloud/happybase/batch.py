@@ -169,8 +169,13 @@ class Batch(object):
         # to add mutations.
         column_pairs = _get_column_pairs(six.iterkeys(data), require_qualifier=True)
 
-        for column_family_id, column_qualifier in column_pairs:
-            value = data[(column_family_id + ":" + column_qualifier).encode("utf-8")]
+        # use key that was passed. Reconstructing it can cause it to not
+        # be found if there is an encoding difference.
+        for key, column_pair in zip(six.iterkeys(data), column_pairs):
+            column_family_id, column_qualifier = column_pair
+            value = data[key]
+            if not isinstance(value, six.binary_type):
+                raise ValueError("Provided value should be a byte string.")
             row_object.set_cell(
                 column_family_id, column_qualifier, value, timestamp=self._timestamp
             )
@@ -220,7 +225,7 @@ class Batch(object):
 
         :type columns: list
         :param columns: (Optional) Iterable containing column names (as
-                        strings). Each column name can be either
+                        bytes). Each column name can be either
 
                           * an entire column family: ``fam`` or ``fam:``
                           * a single column: ``fam:col``
@@ -296,7 +301,7 @@ def _get_column_pairs(columns, require_qualifier=False):
 
     :type columns: list
     :param columns: Iterable containing column names (as
-                    strings). Each column name can be either
+                    bytes). Each column name can be either
 
                       * an entire column family: ``fam`` or ``fam:``
                       * a single column: ``fam:col``
@@ -317,8 +322,11 @@ def _get_column_pairs(columns, require_qualifier=False):
     """
     column_pairs = []
     for column in columns:
+        encoded = False
         if isinstance(column, six.binary_type):
+            encoded = True
             column = column.decode("utf-8")
+
         # Remove trailing colons (i.e. for standalone column family).
         if column.endswith(u":"):
             column = column[:-1]
@@ -326,10 +334,17 @@ def _get_column_pairs(columns, require_qualifier=False):
         if num_colons == 0:
             # column is a column family.
             if require_qualifier:
-                raise ValueError("column does not contain a qualifier", column)
+                raise ValueError("Column does not contain a qualifier", column)
             else:
                 column_pairs.append([column, None])
         elif num_colons == 1:
+            # The SetCell RPC for BigTable allows the family_name to be a
+            # string, but qualifiers should be bytes. If we are passed a
+            # ``family_name:column_qualifer`` that isn't encoded, raise.
+            if not encoded:
+                raise ValueError(
+                    "Column expected to be ``bytes`` when specifying a single column."
+                )
             column_pairs.append(column.split(u":"))
         else:
             raise ValueError("Column contains the : separator more than once")

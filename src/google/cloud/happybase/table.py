@@ -443,7 +443,7 @@ class Table(object):
                     for Cloud Bigtable since it does not have a Write Ahead
                     Log.
         """
-        with self.batch(timestamp=timestamp, wal=wal) as batch:
+        with self.batch(timestamp=timestamp, wal=wal, transaction=True) as batch:
             batch.put(row, data)
 
     def delete(self, row, columns=None, timestamp=None, wal=_WAL_SENTINEL):

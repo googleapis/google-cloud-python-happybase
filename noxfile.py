@@ -54,18 +54,18 @@ def lint(session):
 @nox.session(python="3.6")
 def blacken(session):
     session.install("black")
-    session.run("black", "noxfile.py" "src", "docs", "unit_tests", "system_tests")
+    session.run("black", "noxfile.py", "src", "docs", "unit_tests", "system_tests")
 
 
 @nox.session(python=["2.7", "3.4", "3.5", "3.6", "3.7"])
-def tests(session):
+def unit(session):
     session.install("pytest", "mock")
     session.install(".")
     session.run("py.test", "--quiet", "unit_tests")
 
 
-@nox.session(python=["2.7", "3.4", "3.5", "3.6", "3.7"])
-def system_tests(session):
+@nox.session(python=["2.7", "3.7"])
+def system(session):
     session.install("pytest", "mock")
-    session.install(".")
-    session.run("python", "system_tests/attempt_system_tests.py")
+    session.install("-e", ".")
+    session.run("py.test", "--quiet", "system_tests")

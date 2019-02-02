@@ -68,4 +68,4 @@ def unit(session):
 def system(session):
     session.install("pytest", "mock")
     session.install("-e", ".")
-    session.run("py.test", "--quiet", "system_tests")
+    session.run("py.test", "--quiet", "system_tests/test_happybase.py")

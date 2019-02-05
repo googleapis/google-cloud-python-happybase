@@ -28,6 +28,7 @@ pip-log.txt
 .tox
 .cache
 .pytest_cache
+.nox
 
 # Translations
 *.mo

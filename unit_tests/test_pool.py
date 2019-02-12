@@ -166,7 +166,7 @@ class TestConnectionPool(unittest.TestCase):
             self.assertTrue(
                 isinstance(cnxn_context, contextlib._GeneratorContextManager)
             )
-        else: # pragma: NO COVER Python 2
+        else:  # pragma: NO COVER Python 2
             self.assertTrue(
                 isinstance(cnxn_context, contextlib.GeneratorContextManager)
             )

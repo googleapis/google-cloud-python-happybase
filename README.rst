@@ -5,7 +5,7 @@ Google Cloud Python HappyBase Client
 
 .. _Google Cloud Platform: https://cloud.google.com/
 
-|pypi| |build| |coverage| |versions|
+|pypi| |versions|
 
 -  `Documentation`_
 

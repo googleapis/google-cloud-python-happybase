@@ -202,7 +202,7 @@ class TestBatch(unittest.TestCase):
         # Check how the batch was updated.
         self.assertEqual(batch._row_map, {row_key: mock_row})
 
-    def _put_helper(self, use_wal_none=False):
+    def _put_helper(self, use_wal_none=False, use_value_string=False):
         import operator
 
         table = object()
@@ -213,10 +213,10 @@ class TestBatch(unittest.TestCase):
 
         col1_fam = "cf1"
         col1_qual = "qual1"
-        value1 = "value1"
+        value1 = b"value1"
         col2_fam = "cf2"
         col2_qual = "qual2"
-        value2 = "value2"
+        value2 = b"value2"
         data = {
             (col1_fam + ":" + col1_qual).encode("utf-8"): value1,
             (col2_fam + ":" + col2_qual).encode("utf-8"): value2,
@@ -228,6 +228,11 @@ class TestBatch(unittest.TestCase):
         if use_wal_none:
             batch.put(row_key, data, wal=None)
         else:
+            if use_value_string:
+                data = {
+                    (col1_fam + ":" + col1_qual).encode("utf-8"): value1.decode(),
+                    (col2_fam + ":" + col2_qual).encode("utf-8"): value2.decode(),
+                }
             batch.put(row_key, data)
 
         self.assertEqual(batch._mutation_count, 2)
@@ -253,6 +258,10 @@ class TestBatch(unittest.TestCase):
 
         self.assertEqual(len(warned), 1)
         self.assertIn(_WAL_WARNING, str(warned[0].message))
+
+    def test_put_bad_value(self):
+        with self.assertRaises(ValueError):
+            self._put_helper(use_value_string=True)
 
     def test_put(self):
         self._put_helper()
@@ -286,15 +295,15 @@ class TestBatch(unittest.TestCase):
         batch._delete_range = time_range
 
         col1_fam = "cf1"
-        col2_fam = "cf2"
-        col2_qual = "col-name"
-        columns = [col1_fam + ":", col2_fam + ":" + col2_qual]
+        col2_fam = b"cf2"
+        col2_qual = b"col-name"
+        columns = [col1_fam + ":", col2_fam + b":" + col2_qual]
         row_object = _MockRow()
 
         batch._delete_columns(columns, row_object)
         self.assertEqual(row_object.commits, 0)
 
-        cell_deleted_args = (col2_fam, col2_qual)
+        cell_deleted_args = (col2_fam.decode("utf-8"), col2_qual.decode("utf-8"))
         cell_deleted_kwargs = {"time_range": time_range}
         self.assertEqual(
             row_object.delete_cell_calls, [(cell_deleted_args, cell_deleted_kwargs)]
@@ -392,13 +401,13 @@ class TestBatch(unittest.TestCase):
         self.assertEqual(batch._mutation_count, 0)
 
         col1_fam = "cf1"
-        col2_fam = "cf2"
-        col2_qual = "col-name"
-        columns = [col1_fam + ":", col2_fam + ":" + col2_qual]
+        col2_fam = b"cf2"
+        col2_qual = b"col-name"
+        columns = [col1_fam + ":", col2_fam + b":" + col2_qual]
         batch.delete(row_key, columns=columns)
 
         self.assertEqual(batch._mutation_count, 2)
-        cell_deleted_args = (col2_fam, col2_qual)
+        cell_deleted_args = (col2_fam.decode("utf-8"), col2_qual.decode("utf-8"))
         cell_deleted_kwargs = {"time_range": None}
         self.assertEqual(
             row.delete_cell_calls, [(cell_deleted_args, cell_deleted_kwargs)]
@@ -468,7 +477,7 @@ class Test__get_column_pairs(unittest.TestCase):
         return _get_column_pairs(*args, **kwargs)
 
     def test_it(self):
-        columns = [b"cf1", u"cf2:", "cf3::", "cf3:name1", "cf3:name2"]
+        columns = [b"cf1", u"cf2:", b"cf3::", b"cf3:name1", b"cf3:name2"]
         result = self._call_fut(columns)
         expected_result = [
             ["cf1", None],
@@ -492,6 +501,11 @@ class Test__get_column_pairs(unittest.TestCase):
     def test_bad_columns_var(self):
         columns = None
         with self.assertRaises(TypeError):
+            self._call_fut(columns)
+
+    def test_column_with_qualifier_not_encoded(self):
+        columns = [u"a:name"]
+        with self.assertRaises(ValueError):
             self._call_fut(columns)
 
     def test_column_family_with_require_qualifier(self):

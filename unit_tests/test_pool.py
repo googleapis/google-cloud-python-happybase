@@ -162,11 +162,11 @@ class TestConnectionPool(unittest.TestCase):
         queue_return = _Connection()
         pool = self._make_one_with_mock_queue(queue_return)
         cnxn_context = pool.connection()
-        if six.PY3:  # pragma: NO COVER Python 3
+        if six.PY3:
             self.assertTrue(
                 isinstance(cnxn_context, contextlib._GeneratorContextManager)
             )
-        else:
+        else:  # pragma: NO COVER Python 2
             self.assertTrue(
                 isinstance(cnxn_context, contextlib.GeneratorContextManager)
             )

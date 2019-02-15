@@ -714,7 +714,7 @@ class TestTable(unittest.TestCase):
         expected_kwargs = {
             "timestamp": timestamp,
             "batch_size": None,
-            "transaction": False,
+            "transaction": True,
             "wal": _WAL_SENTINEL,
         }
         self.assertEqual(batch.kwargs, expected_kwargs)
@@ -895,7 +895,7 @@ class TestTable(unittest.TestCase):
         expected_kwargs = {
             "timestamp": None,
             "batch_size": None,
-            "transaction": False,
+            "transaction": True,
             "wal": _WAL_SENTINEL,
         }
         self.assertEqual(batch.kwargs, expected_kwargs)
@@ -1345,9 +1345,9 @@ class Test__columns_filter_helper(unittest.TestCase):
         from google.cloud.bigtable.row_filters import RowFilterUnion
 
         col_fam1 = "cf1"
-        col_fam2 = "cf2"
-        col_qual2 = "qual2"
-        columns = [col_fam1, col_fam2 + ":" + col_qual2]
+        col_fam2 = b"cf2"
+        col_qual2 = b"qual2"
+        columns = [col_fam1, col_fam2 + b":" + col_qual2]
         result = self._call_fut(columns)
 
         self.assertTrue(isinstance(result, RowFilterUnion))
@@ -1361,9 +1361,9 @@ class Test__columns_filter_helper(unittest.TestCase):
         self.assertTrue(isinstance(filter2, RowFilterChain))
         filter2a, filter2b = filter2.filters
         self.assertTrue(isinstance(filter2a, FamilyNameRegexFilter))
-        self.assertEqual(filter2a.regex, col_fam2.encode("utf-8"))
+        self.assertEqual(filter2a.regex, col_fam2)
         self.assertTrue(isinstance(filter2b, ColumnQualifierRegexFilter))
-        self.assertEqual(filter2b.regex, col_qual2.encode("utf-8"))
+        self.assertEqual(filter2b.regex, col_qual2)
 
 
 class Test___get_row_set_object(unittest.TestCase):

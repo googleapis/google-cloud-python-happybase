@@ -655,7 +655,7 @@ class TestTable_put(BaseTableTest):
         row1_data_with_timestamps = {COL1: (value1, ts), COL2: (value2, ts)}
         self.assertEqual(row1, row1_data_with_timestamps)
 
-    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python 3 only test") 
+    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python 3 only test")
     def test_put_not_encoded_value(self):
         value1 = "hello world!"
         col1 = (COL_FAM1 + ":greetings").encode("utf-8")
@@ -666,7 +666,7 @@ class TestTable_put(BaseTableTest):
         with self.assertRaises(ValueError):
             Config.TABLE.put(ROW_KEY1, row1_data)
 
-    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python 3 only test") 
+    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python 3 only test")
     def test_put_not_encoded_column_family(self):
         value1 = "hello world!".encode("utf-8")
         col1 = "col1:greetings"

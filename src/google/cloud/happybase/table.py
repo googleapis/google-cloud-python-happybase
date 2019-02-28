@@ -39,7 +39,7 @@ from google.cloud.bigtable.row_set import RowSet
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL
 from google.cloud.happybase.batch import Batch
-
+from google.cloud.happybase.region_locator import Region
 
 _PACK_I64 = struct.Struct(">q").pack
 _UNPACK_I64 = struct.Struct(">q").unpack
@@ -142,20 +142,20 @@ class Table(object):
 
     def regions(self):
         """Retrieve the regions for this table.
-
-        .. warning::
-
-            Cloud Bigtable does not give information about how a table is laid
-            out in memory, so this method does not work. It is
-            provided simply for compatibility.
-
-        :raises: :class:`NotImplementedError <exceptions.NotImplementedError>`
-                 always
+        :rtype : Region
+        :returns : list of region in bigtable's row-key
         """
-        raise NotImplementedError(
-            "The Cloud Bigtable API does not have a "
-            "concept of splitting a table into regions."
-        )
+        regions = []
+        start_key = b""
+        end_key = b""
+        for sample_row_key in self._low_level_table.sample_row_keys():
+            end_key = sample_row_key.row_key
+            if start_key is not end_key:
+                regions.append(Region(start_key, end_key))
+                start_key = end_key
+        if not regions and start_key is not end_key:
+            regions.append(Region(start_key, end_key))
+        return regions
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):
         """Retrieve a single row of data.

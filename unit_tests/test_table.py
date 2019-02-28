@@ -114,12 +114,34 @@ class TestTable(unittest.TestCase):
         self.assertEqual(repr(table), "<table.Table name='table-name'>")
 
     def test_regions(self):
+        from google.cloud.happybase.region_locator import Region
         name = "table-name"
         connection = None
+        fake_region_list = []
         table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        regions_list = table.regions()
+        self.assertEqual(fake_region_list, regions_list)
 
-        with self.assertRaises(NotImplementedError):
-            table.regions()
+    def test_regions_with_initial_split_keys(self):
+        from google.cloud.happybase.region_locator import Region
+        name = "table-name"
+        connection = None
+        initial_split_keys = [b"split_key_1", b"split_key_10"]
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        table._low_level_table.initial_split_keys = initial_split_keys
+        fake_region_list = []
+        start_key = b''
+        for row_key in initial_split_keys:
+            end_key = row_key
+            fake_region_list.append(Region(start_key=start_key, end_key=end_key))
+            start_key = end_key
+
+        regions_list = table.regions()
+        print(regions_list)
+        print(fake_region_list)
+        self.assertEqual(fake_region_list, regions_list)
 
     def test_row_empty_row(self):
         name = "table-name"
@@ -1420,6 +1442,9 @@ class _MockLowLevelTable(object):
         self.read_row_result = None
         self.read_rows_calls = []
         self.read_rows_result = None
+        self.sample_row_keys_result = []
+        self.regions_result = []
+        self.initial_split_keys = []
 
     def list_column_families(self):
         self.list_column_families_calls += 1
@@ -1441,6 +1466,11 @@ class _MockLowLevelTable(object):
             curr_row_data = rows_dict.pop(row_key)
             yield curr_row_data
 
+    def sample_row_keys(self,*args, **kwargs):
+        for row_key in sorted(self.initial_split_keys):
+            self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
+        print (self.sample_row_keys_result)
+        return self.sample_row_keys_result
 
 class _MockLowLevelRow(object):
 
@@ -1487,3 +1517,10 @@ class _MockPartialRowsData(object):
         self.consume_all_calls = 0
         self.consume_next_calls = 0
         self.iterations = iterations
+
+
+class _MockSampleRowKey(object):
+
+    def __init__(self, row_key=b'', offset_bytes=b''):
+        self.row_key = row_key
+        self.offset_bytes = offset_bytes

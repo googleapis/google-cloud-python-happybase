@@ -26,6 +26,14 @@ class Region(object):
 
     """
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return other.start_key == self.start_key and self.end_key == other.end_key
+
+    def __ne__(self, other):
+        return not self == other
+
     def __init__(self, start_key=b"", end_key=b""):
         self.start_key = start_key
         self.end_key = end_key

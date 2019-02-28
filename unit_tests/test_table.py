@@ -121,7 +121,13 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         regions_list = table.regions()
+        region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        region2 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        region3 = Region(start_key=b"split_key_3", end_key=b"split_key_4")
         self.assertEqual(fake_region_list, regions_list)
+        self.assertEqual(region1, region2)
+        self.assertNotEqual(region1, region3)
+
 
     def test_regions_with_initial_split_keys(self):
         from google.cloud.happybase.region_locator import Region
@@ -139,8 +145,6 @@ class TestTable(unittest.TestCase):
             start_key = end_key
 
         regions_list = table.regions()
-        print(regions_list)
-        print(fake_region_list)
         self.assertEqual(fake_region_list, regions_list)
 
     def test_row_empty_row(self):
@@ -1469,7 +1473,6 @@ class _MockLowLevelTable(object):
     def sample_row_keys(self,*args, **kwargs):
         for row_key in sorted(self.initial_split_keys):
             self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
-        print (self.sample_row_keys_result)
         return self.sample_row_keys_result
 
 class _MockLowLevelRow(object):

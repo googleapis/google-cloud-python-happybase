@@ -113,13 +113,15 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, None)
         self.assertEqual(repr(table), "<table.Table name='table-name'>")
 
-    def test_regions_empty(self):
+    def test_regions_with_none_split_key(self):
+        from google.cloud.happybase.region_locator import Region
         name = "table-name"
         connection = None
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         regions_list = table.regions()
-        self.assertEqual(regions_list, [])
+        region1 = Region()
+        self.assertEqual(regions_list, [region1])
 
     def test_region__eq__(self):
         from google.cloud.happybase.region_locator import Region
@@ -127,11 +129,24 @@ class TestTable(unittest.TestCase):
         region2 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
         self.assertEqual(region1, region2)
 
+    def test_region__eq__differ(self):
+        from google.cloud.happybase.region_locator import Region
+        region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        region2 = object()
+        self.assertNotEqual(region1, region2)
+
     def test_region__ne__(self):
         from google.cloud.happybase.region_locator import Region
         region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = Region(start_key=b"split_key_3", end_key=b"split_key_4")
         self.assertNotEqual(region1, region2)
+
+    def test_region__ne__same_value(self):
+        from google.cloud.happybase.region_locator import Region
+        region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        region2 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        comparison_value = region1 != region2
+        self.assertFalse(comparison_value)
 
     def test_regions_with_initial_split_keys(self):
         from google.cloud.happybase.region_locator import Region
@@ -147,8 +162,57 @@ class TestTable(unittest.TestCase):
             end_key = row_key
             expected_region_list.append(Region(start_key=start_key, end_key=end_key))
             start_key = end_key
+        end_key = b''
+        expected_region_list.append(Region(start_key=start_key, end_key=end_key))
         regions_list = table.regions()
+        print(regions_list)
+        print(expected_region_list)
         self.assertEqual(regions_list, expected_region_list)
+
+    def test_region_first_of_table(self):
+        from google.cloud.happybase.region_locator import Region
+        name = "table-name"
+        connection = None
+        first_split_key = b"split_key_1"
+        initial_split_keys = [first_split_key, b"split_key_10"]
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        table._low_level_table.initial_split_keys = initial_split_keys
+        expected_region = Region(end_key=first_split_key)
+        regions_list = table.regions()
+        self.assertEqual(regions_list[0], expected_region)
+
+    def test_region_last_of_table(self):
+        from google.cloud.happybase.region_locator import Region
+        name = "table-name"
+        connection = None
+        last_split_key = b"split_key_10"
+        initial_split_keys = [b"split_key_1", last_split_key]
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        table._low_level_table.initial_split_keys = initial_split_keys
+        expected_region = Region(start_key=last_split_key)
+        regions_list = table.regions()
+        self.assertEqual(regions_list[-1], expected_region)
+
+    def test_region_middle_of_table(self):
+        from google.cloud.happybase.region_locator import Region
+        name = "table-name"
+        connection = None
+        split_key1, split_key2, split_key3, split_key4, split_key5 =  b"split_key_1", b"split_key_2", b"split_key_3", b"split_key_4", b"split_key_5"
+        initial_split_keys = [split_key1, split_key2, split_key3, split_key4, split_key5]
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        table._low_level_table.initial_split_keys = initial_split_keys
+
+        expected_region_list = []
+
+        expected_region_list.append(Region(start_key=split_key1, end_key=split_key2))
+        expected_region_list.append(Region(start_key=split_key2, end_key=split_key3))
+        expected_region_list.append(Region(start_key=split_key3, end_key=split_key4))
+
+        regions_list = table.regions()
+        self.assertEqual(regions_list[1:4], expected_region_list)
 
     def test_row_empty_row(self):
         name = "table-name"
@@ -1473,7 +1537,7 @@ class _MockLowLevelTable(object):
             curr_row_data = rows_dict.pop(row_key)
             yield curr_row_data
 
-    def sample_row_keys(self,*args, **kwargs):
+    def sample_row_keys(self):
         for row_key in sorted(self.initial_split_keys):
             self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
         return self.sample_row_keys_result
@@ -1527,6 +1591,6 @@ class _MockPartialRowsData(object):
 
 class _MockSampleRowKey(object):
 
-    def __init__(self, row_key=b'', offset_bytes=b''):
+    def __init__(self, row_key=b'', offset_bytes=0):
         self.row_key = row_key
         self.offset_bytes = offset_bytes

@@ -37,3 +37,6 @@ class Region(object):
     def __init__(self, start_key=b"", end_key=b""):
         self.start_key = start_key
         self.end_key = end_key
+
+    def __repr__(self):
+        return "{} - {}".format(self.start_key, self.end_key)

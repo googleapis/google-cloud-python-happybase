@@ -147,13 +147,13 @@ class Table(object):
         """
         regions = []
         start_key = b""
-        end_key = b""
         for sample_row_key in self._low_level_table.sample_row_keys():
             end_key = sample_row_key.row_key
             if start_key is not end_key:
                 regions.append(Region(start_key, end_key))
                 start_key = end_key
-        if not regions and start_key is not end_key:
+        end_key = b""
+        if not regions or start_key is not end_key:
             regions.append(Region(start_key, end_key))
         return regions
 

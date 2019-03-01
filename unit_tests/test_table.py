@@ -113,21 +113,25 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, None)
         self.assertEqual(repr(table), "<table.Table name='table-name'>")
 
-    def test_regions(self):
-        from google.cloud.happybase.region_locator import Region
+    def test_regions_empty(self):
         name = "table-name"
         connection = None
-        fake_region_list = []
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         regions_list = table.regions()
+        self.assertEqual(regions_list, [])
+
+    def test_region__eq__(self):
+        from google.cloud.happybase.region_locator import Region
         region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
-        region3 = Region(start_key=b"split_key_3", end_key=b"split_key_4")
-        self.assertEqual(fake_region_list, regions_list)
         self.assertEqual(region1, region2)
-        self.assertNotEqual(region1, region3)
 
+    def test_region__ne__(self):
+        from google.cloud.happybase.region_locator import Region
+        region1 = Region(start_key=b"split_key_1", end_key=b"split_key_10")
+        region2 = Region(start_key=b"split_key_3", end_key=b"split_key_4")
+        self.assertNotEqual(region1, region2)
 
     def test_regions_with_initial_split_keys(self):
         from google.cloud.happybase.region_locator import Region
@@ -137,15 +141,14 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
-        fake_region_list = []
+        expected_region_list = []
         start_key = b''
         for row_key in initial_split_keys:
             end_key = row_key
-            fake_region_list.append(Region(start_key=start_key, end_key=end_key))
+            expected_region_list.append(Region(start_key=start_key, end_key=end_key))
             start_key = end_key
-
         regions_list = table.regions()
-        self.assertEqual(fake_region_list, regions_list)
+        self.assertEqual(regions_list, expected_region_list)
 
     def test_row_empty_row(self):
         name = "table-name"

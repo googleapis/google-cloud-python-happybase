@@ -15,8 +15,8 @@
 """Google Cloud Bigtable HappyBase table module."""
 
 
-class Region(object):
-    """Representation of region of Bigtable's row-key
+class RegionLocation(object):
+    """Representation of region of Bigtable
 
     :type start_key = bytes
     :param start_key = starting key of region is inclusive

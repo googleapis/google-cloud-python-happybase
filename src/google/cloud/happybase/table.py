@@ -39,7 +39,7 @@ from google.cloud.bigtable.row_set import RowSet
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL
 from google.cloud.happybase.batch import Batch
-from google.cloud.happybase.region_locator import Region
+from google.cloud.happybase.region_locator import RegionLocation
 
 _PACK_I64 = struct.Struct(">q").pack
 _UNPACK_I64 = struct.Struct(">q").unpack
@@ -142,19 +142,22 @@ class Table(object):
 
     def regions(self):
         """Retrieve the regions for this table.
-        :rtype : Region
-        :returns : list of region in bigtable's row-key
+        :rtype : list
+        :returns : A list of :class:`~google.cloud.bigtable.happybase.region_locator.RegionLocation` objects.
+          lists regions for every row key of sample row keys of this table. every region's start key is previous row
+          key if it differs from current row key or None byte and end key is current row key. if table have not any
+          sample row key it return list with one region in with None byte start key and None byte end key.
         """
         regions = []
         start_key = b""
         for sample_row_key in self._low_level_table.sample_row_keys():
             end_key = sample_row_key.row_key
             if start_key is not end_key:
-                regions.append(Region(start_key, end_key))
+                regions.append(RegionLocation(start_key, end_key))
                 start_key = end_key
         end_key = b""
         if not regions or start_key is not end_key:
-            regions.append(Region(start_key, end_key))
+            regions.append(RegionLocation(start_key, end_key))
         return regions
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):

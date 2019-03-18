@@ -17,6 +17,7 @@ import os
 from setuptools import find_packages
 from setuptools import setup
 
+version = '0.33.0'
 
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -59,7 +60,7 @@ SETUP_BASE.pop('url')
 
 setup(
     name='google-cloud-happybase',
-    version='0.32.1',
+    version=version,
     description='Client library for Google Cloud Bigtable: HappyBase layer',
     long_description=README,
     url='https://github.com/googleapis/google-cloud-python-happybase',

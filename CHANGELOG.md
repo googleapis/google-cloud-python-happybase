@@ -5,6 +5,20 @@
 [1]: https://pypi.org/project/google-cloud-happybase/#history
 
 
+## 0.33.0
+
+03-18-2019 12:57 PDT
+
+
+### New Features
+- Enforce types more strictly on puts and handle non-encoded column names. ([#63](https://github.com/googleapis/google-cloud-python-happybase/pull/63))
+
+### Internal / Testing Changes
+- Remove badges ([#65](https://github.com/googleapis/google-cloud-python-happybase/pull/65))
+- Fix tests ([#66](https://github.com/googleapis/google-cloud-python-happybase/pull/66))
+- Add kokoro ([#61](https://github.com/googleapis/google-cloud-python-happybase/pull/61))
+- Blacken ([#64](https://github.com/googleapis/google-cloud-python-happybase/pull/64))
+
 ## 0.32.1
 
 01-23-2019 13:08 PST

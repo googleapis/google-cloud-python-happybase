@@ -63,8 +63,8 @@ label_stamp = (
     .strftime("%Y-%m-%dt%H-%M-%S")
 )
 LABELS = {LABEL_KEY: str(label_stamp)}
-SPLIT_KEY1 = b"50505050505050"
-SPLIT_KEY2 = b"60606060606060"
+SPLIT_KEY1 = b"split_key_01"
+SPLIT_KEY2 = b"split_key_10"
 INITIAL_SPLIT_KEYS = [SPLIT_KEY1, SPLIT_KEY2]
 
 class Config(object):
@@ -120,7 +120,7 @@ def set_connection():
 
 def setUpModule():
     set_connection()
-    Config.CONNECTION.create_table(TABLE_NAME, FAMILIES, INITIAL_SPLIT_KEYS)
+    Config.CONNECTION.create_table(TABLE_NAME, FAMILIES)
     Config.TABLE = Config.CONNECTION.table(TABLE_NAME)
 
 
@@ -884,8 +884,17 @@ class TestTableCounterMethods(BaseTableTest):
 class TestTable_region(BaseTableTest):
 
     def test_region(self):
-        table = Config.TABLE
+        ALT_TABLE_NAME = "table_with_split_key"
+        connection = Config.CONNECTION
+        
+        connection.create_table(ALT_TABLE_NAME, {COL_FAM1: {}}, INITIAL_SPLIT_KEYS)
+        table = connection.table(ALT_TABLE_NAME)
+        self.assertTrue(ALT_TABLE_NAME in connection.tables())
+
         reg1, reg2, reg3 = table.regions()
         self.assertEqual((reg1.start_key, reg1.end_key), (b"", SPLIT_KEY1))
         self.assertEqual((reg2.start_key, reg2.end_key), (SPLIT_KEY1, SPLIT_KEY2))
         self.assertEqual((reg3.start_key, reg3.end_key), (SPLIT_KEY2, b""))
+
+        connection.delete_table(ALT_TABLE_NAME)
+        self.assertFalse(ALT_TABLE_NAME in connection.tables())

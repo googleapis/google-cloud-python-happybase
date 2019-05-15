@@ -39,7 +39,6 @@ from google.cloud.bigtable.row_set import RowSet
 from google.cloud.happybase.batch import _get_column_pairs
 from google.cloud.happybase.batch import _WAL_SENTINEL
 from google.cloud.happybase.batch import Batch
-from google.cloud.happybase.region_locator import RegionLocation
 
 _PACK_I64 = struct.Struct(">q").pack
 _UNPACK_I64 = struct.Struct(">q").unpack
@@ -148,17 +147,10 @@ class Table(object):
           key if it differs from current row key or None byte and end key is current row key. if table have not any
           sample row key it return list with one region in with None byte start key and None byte end key.
         """
-        regions = []
-        start_key = b""
-        for sample_row_key in self._low_level_table.sample_row_keys():
-            end_key = sample_row_key.row_key
-            if start_key is not end_key:
-                regions.append(RegionLocation(start_key, end_key))
-                start_key = end_key
-        end_key = b""
-        if not regions or start_key is not end_key:
-            regions.append(RegionLocation(start_key, end_key))
-        return regions
+        result = []
+        for region in self._low_level_table.regions():
+            result.append(dict(start_key=region.start_key, end_key=region.end_key))
+        return result
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):
         """Retrieve a single row of data.

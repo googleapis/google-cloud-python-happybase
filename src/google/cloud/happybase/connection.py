@@ -273,7 +273,7 @@ class Connection(object):
 
         return table_names
 
-    def create_table(self, name, families, initial_split_keys=[]):
+    def create_table(self, name, families):
         """Create a table.
 
         .. warning::
@@ -338,7 +338,7 @@ class Connection(object):
         low_level_table = _LowLevelTable(name, self._instance)
 
         try:
-            low_level_table.create(column_families=gc_rule_dict, initial_split_keys=initial_split_keys)
+            low_level_table.create(column_families=gc_rule_dict)
         except face.NetworkError as network_err:
             if network_err.code == interfaces.StatusCode.ALREADY_EXISTS:
                 raise AlreadyExists(name)

@@ -974,6 +974,15 @@ class TestTable(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._counter_inc_helper(row, column, value, commit_result)
 
+    def test_regions(self):
+        name = "table-name"
+        connection = None
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        result = table.regions()
+        expected_result = [{"start_key": b"", "end_key": b""}]
+        self.assertEqual(result, expected_result)
+
 
 class Test__gc_rule_to_dict(unittest.TestCase):
     def _call_fut(self, *args, **kwargs):
@@ -1412,9 +1421,9 @@ class _MockLowLevelTable(object):
         self.read_row_result = None
         self.read_rows_calls = []
         self.read_rows_result = None
-        self.sample_row_keys_result = []
         self.regions_result = []
-        self.initial_split_keys = []
+        self.initial_split_keys = [b""]
+        self.region_list = []
 
     def list_column_families(self):
         self.list_column_families_calls += 1
@@ -1436,10 +1445,17 @@ class _MockLowLevelTable(object):
             curr_row_data = rows_dict.pop(row_key)
             yield curr_row_data
 
-    def sample_row_keys(self):
+    def regions(self):
         for row_key in self.initial_split_keys:
-            self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
-        return self.sample_row_keys_result
+            self.region_list.append(_MockRegion(row_key))
+        return self.region_list
+
+
+class _MockRegion(object):
+    def __init__(self, start_key=b"", end_key=b""):
+        self.start_key = start_key
+        self.end_key = end_key
+
 
 class _MockLowLevelRow(object):
 
@@ -1486,10 +1502,3 @@ class _MockPartialRowsData(object):
         self.consume_all_calls = 0
         self.consume_next_calls = 0
         self.iterations = iterations
-
-
-class _MockSampleRowKey(object):
-
-    def __init__(self, row_key=b'', offset_bytes=0):
-        self.row_key = row_key
-        self.offset_bytes = offset_bytes

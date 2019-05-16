@@ -63,9 +63,7 @@ label_stamp = (
     .strftime("%Y-%m-%dt%H-%M-%S")
 )
 LABELS = {LABEL_KEY: str(label_stamp)}
-SPLIT_KEY1 = b"split_key_01"
-SPLIT_KEY2 = b"split_key_10"
-INITIAL_SPLIT_KEYS = [SPLIT_KEY1, SPLIT_KEY2]
+
 
 class Config(object):
     """Run-time configuration to be modified at set-up.
@@ -796,6 +794,7 @@ class TestTable_delete(BaseTableTest):
 
     def test_delete_with_columns_and_timestamp(self):
         table = Config.TABLE
+
         value1 = b"value1"
         value2 = b"value2"
 
@@ -880,21 +879,3 @@ class TestTableCounterMethods(BaseTableTest):
             table.row(ROW_KEY1, columns=[COL1]), {COL1: _PACK_I64(-dec_value)}
         )
 
-
-class TestTable_region(BaseTableTest):
-
-    def test_region(self):
-        ALT_TABLE_NAME = "table_with_split_key"
-        connection = Config.CONNECTION
-        
-        connection.create_table(ALT_TABLE_NAME, {COL_FAM1: {}}, INITIAL_SPLIT_KEYS)
-        table = connection.table(ALT_TABLE_NAME)
-        self.assertTrue(ALT_TABLE_NAME in connection.tables())
-
-        reg1, reg2, reg3 = table.regions()
-        self.assertEqual((reg1.start_key, reg1.end_key), (b"", SPLIT_KEY1))
-        self.assertEqual((reg2.start_key, reg2.end_key), (SPLIT_KEY1, SPLIT_KEY2))
-        self.assertEqual((reg3.start_key, reg3.end_key), (SPLIT_KEY2, b""))
-
-        connection.delete_table(ALT_TABLE_NAME)
-        self.assertFalse(ALT_TABLE_NAME in connection.tables())

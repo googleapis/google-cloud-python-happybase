@@ -141,11 +141,9 @@ class Table(object):
 
     def regions(self):
         """Retrieve the regions for this table.
+
         :rtype : list
-        :returns : A list of :class:`~google.cloud.bigtable.happybase.region_locator.RegionLocation` objects.
-          lists regions for every row key of sample row keys of this table. every region's start key is previous row
-          key if it differs from current row key or None byte and end key is current row key. if table have not any
-          sample row key it return list with one region in with None byte start key and None byte end key.
+        :return : start_key and end_key of region in list of dictionary
         """
         result = []
         for region in self._low_level_table.regions():

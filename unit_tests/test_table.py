@@ -115,31 +115,34 @@ class TestTable(unittest.TestCase):
 
     def test_region__eq__(self):
         from google.cloud.happybase.region_locator import RegionLocation
+
         region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         self.assertEqual(region1, region2)
 
     def test_region__eq__differ(self):
         from google.cloud.happybase.region_locator import RegionLocation
+
         region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = object()
         self.assertNotEqual(region1, region2)
 
     def test_region__ne__(self):
         from google.cloud.happybase.region_locator import RegionLocation
+
         region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = RegionLocation(start_key=b"split_key_3", end_key=b"split_key_4")
         self.assertNotEqual(region1, region2)
 
     def test_region__ne__same_value(self):
         from google.cloud.happybase.region_locator import RegionLocation
+
         region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         region2 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
         comparison_value = region1 != region2
         self.assertFalse(comparison_value)
 
     def test_regions_with_initial_split_keys_from_middle(self):
-        from google.cloud.happybase.region_locator import RegionLocation
         name = "table-name"
         connection = None
         initial_split_keys = [b"split_key_01", b"split_key_10"]
@@ -147,27 +150,28 @@ class TestTable(unittest.TestCase):
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
         expected_region_list = [
-            RegionLocation(end_key=b"split_key_01"),
-            RegionLocation(start_key=b"split_key_01", end_key=b"split_key_10"),
-            RegionLocation(start_key=b"split_key_10")
+            dict(start_key=b"", end_key=b"split_key_01"),
+            dict(start_key=b"split_key_01", end_key=b"split_key_10"),
+            dict(start_key=b"split_key_10", end_key=b""),
         ]
         region_list = table.regions()
         self.assertEqual(region_list, expected_region_list)
 
     def test_region_initial_split_keys_with_end(self):
-        from google.cloud.happybase.region_locator import RegionLocation
         name = "table-name"
         connection = None
         initial_split_keys = [b"split_key_01", b""]
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
-        expected_region_list = [RegionLocation(end_key=b"split_key_01"), RegionLocation(start_key=b"split_key_01")]
+        expected_region_list = [
+            dict(start_key=b"", end_key=b"split_key_01"),
+            dict(start_key=b"split_key_01", end_key=b""),
+        ]
         region_list = table.regions()
         self.assertEqual(region_list, expected_region_list)
 
     def test_region_empty_row_key(self):
-        from google.cloud.happybase.region_locator import RegionLocation
         name = "table-name"
         connection = None
         initial_split_keys = [b""]
@@ -175,7 +179,7 @@ class TestTable(unittest.TestCase):
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
         region_list = table.regions()
-        self.assertEqual(region_list, [RegionLocation()])
+        self.assertEqual(region_list, [dict(start_key=b"", end_key=b"")])
 
     def test_row_empty_row(self):
         name = "table-name"
@@ -1505,6 +1509,7 @@ class _MockLowLevelTable(object):
             self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
         return self.sample_row_keys_result
 
+
 class _MockLowLevelRow(object):
 
     COUNTER_DEFAULT = 0
@@ -1553,7 +1558,6 @@ class _MockPartialRowsData(object):
 
 
 class _MockSampleRowKey(object):
-
-    def __init__(self, row_key=b'', offset_bytes=0):
+    def __init__(self, row_key=b"", offset_bytes=0):
         self.row_key = row_key
         self.offset_bytes = offset_bytes

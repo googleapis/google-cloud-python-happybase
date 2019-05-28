@@ -142,11 +142,12 @@ class Table(object):
 
     def regions(self):
         """Retrieve the regions for this table.
-        :rtype : list
-        :returns : A list of :class:`~google.cloud.bigtable.happybase.region_locator.RegionLocation` objects.
-          lists regions for every row key of sample row keys of this table. every region's start key is previous row
-          key if it differs from current row key or None byte and end key is current row key. if table have not any
-          sample row key it return list with one region in with None byte start key and None byte end key.
+
+        :rtype: list
+        :returns: A list of :class:`~google.cloud.bigtable.happybase.region_locator.RegionLocation` objects.
+                  lists regions for every row key of sample row keys of this table. every region's start key is previous row
+                  key if it differs from current row key or None byte and end key is current row key. if table have not any
+                  sample row key it return list with one region in with None byte start key and None byte end key.
         """
         regions = []
         start_key = b""
@@ -158,7 +159,7 @@ class Table(object):
         end_key = b""
         if not regions or start_key is not end_key:
             regions.append(RegionLocation(start_key, end_key))
-        return regions
+        return _region_to_dict(regions)
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):
         """Retrieve a single row of data.
@@ -646,6 +647,21 @@ class Table(object):
         :returns: Counter value after decrementing.
         """
         return self.counter_inc(row, column, -value)
+
+
+def _region_to_dict(regions):
+    """Converts region locator to dict
+
+    :type list: list object of `~google.cloud.happybase.RegionLocation`
+    :param regions:
+
+    :rtype: list
+    :return: list of converted regions into dict
+    """
+    result = []
+    for region in regions:
+        result.append(dict(start_key=region.start_key, end_key=region.end_key))
+    return result
 
 
 def _gc_rule_to_dict(gc_rule):

@@ -886,15 +886,13 @@ class TestTable_region(BaseTableTest):
     def test_region(self):
         ALT_TABLE_NAME = "table_with_split_key"
         connection = Config.CONNECTION
-        
-        connection.create_table(ALT_TABLE_NAME, {COL_FAM1: {}}, INITIAL_SPLIT_KEYS)
+
+        connection.create_table(ALT_TABLE_NAME, {COL_FAM1: {}})
         table = connection.table(ALT_TABLE_NAME)
         self.assertTrue(ALT_TABLE_NAME in connection.tables())
 
-        reg1, reg2, reg3 = table.regions()
-        self.assertEqual((reg1.start_key, reg1.end_key), (b"", SPLIT_KEY1))
-        self.assertEqual((reg2.start_key, reg2.end_key), (SPLIT_KEY1, SPLIT_KEY2))
-        self.assertEqual((reg3.start_key, reg3.end_key), (SPLIT_KEY2, b""))
+        regions = table.regions()
+        self.assertEqual(dict(start_key=b"", end_key=b""), regions[0])
 
         connection.delete_table(ALT_TABLE_NAME)
         self.assertFalse(ALT_TABLE_NAME in connection.tables())

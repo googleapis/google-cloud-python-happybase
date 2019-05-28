@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Google Cloud Bigtable HappyBase table module."""
+"""Google Cloud Bigtable HappyBase region locator module."""
 
 
 class RegionLocation(object):
@@ -26,6 +26,10 @@ class RegionLocation(object):
 
     """
 
+    def __init__(self, start_key=b"", end_key=b""):
+        self.start_key = start_key
+        self.end_key = end_key
+
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
@@ -34,6 +38,3 @@ class RegionLocation(object):
     def __ne__(self, other):
         return not self == other
 
-    def __init__(self, start_key=b"", end_key=b""):
-        self.start_key = start_key
-        self.end_key = end_key

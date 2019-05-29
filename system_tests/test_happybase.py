@@ -67,6 +67,7 @@ SPLIT_KEY1 = b"split_key_01"
 SPLIT_KEY2 = b"split_key_10"
 INITIAL_SPLIT_KEYS = [SPLIT_KEY1, SPLIT_KEY2]
 
+
 class Config(object):
     """Run-time configuration to be modified at set-up.
 
@@ -882,17 +883,23 @@ class TestTableCounterMethods(BaseTableTest):
 
 
 class TestTable_region(BaseTableTest):
-
     def test_region(self):
+        from google.cloud.bigtable.table import Table as _LowLevelTable
+
         ALT_TABLE_NAME = "table_with_split_key"
         connection = Config.CONNECTION
-
-        connection.create_table(ALT_TABLE_NAME, {COL_FAM1: {}})
+        _low_level_table = _LowLevelTable(ALT_TABLE_NAME, connection._instance)
+        _low_level_table.create(initial_split_keys=INITIAL_SPLIT_KEYS)
         table = connection.table(ALT_TABLE_NAME)
         self.assertTrue(ALT_TABLE_NAME in connection.tables())
-
         regions = table.regions()
-        self.assertEqual(dict(start_key=b"", end_key=b""), regions[0])
-
+        self.assertEqual(
+            [
+                dict(start_key=b"", end_key=SPLIT_KEY1),
+                dict(start_key=SPLIT_KEY1, end_key=SPLIT_KEY2),
+                dict(start_key=SPLIT_KEY2, end_key=b""),
+            ],
+            regions,
+        )
         connection.delete_table(ALT_TABLE_NAME)
         self.assertFalse(ALT_TABLE_NAME in connection.tables())

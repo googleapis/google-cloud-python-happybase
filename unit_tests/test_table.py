@@ -113,35 +113,6 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, None)
         self.assertEqual(repr(table), "<table.Table name='table-name'>")
 
-    def test_region__eq__(self):
-        from google.cloud.happybase.region_locator import RegionLocation
-
-        region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        region2 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        self.assertEqual(region1, region2)
-
-    def test_region__eq__differ(self):
-        from google.cloud.happybase.region_locator import RegionLocation
-
-        region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        region2 = object()
-        self.assertNotEqual(region1, region2)
-
-    def test_region__ne__(self):
-        from google.cloud.happybase.region_locator import RegionLocation
-
-        region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        region2 = RegionLocation(start_key=b"split_key_3", end_key=b"split_key_4")
-        self.assertNotEqual(region1, region2)
-
-    def test_region__ne__same_value(self):
-        from google.cloud.happybase.region_locator import RegionLocation
-
-        region1 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        region2 = RegionLocation(start_key=b"split_key_1", end_key=b"split_key_10")
-        comparison_value = region1 != region2
-        self.assertFalse(comparison_value)
-
     def test_regions_with_initial_split_keys_from_middle(self):
         name = "table-name"
         connection = None

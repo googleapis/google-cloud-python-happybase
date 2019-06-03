@@ -19,6 +19,7 @@ import pytest
 import struct
 import sys
 import unittest
+import time
 
 from google.cloud.bigtable import client as client_mod
 from google.cloud.happybase.connection import Connection
@@ -39,6 +40,7 @@ CLUSTER_ID = "gcl-hb-c1" + unique_resource_id("-")
 SERVER_NODES = 3
 TABLE_NAME = "table-name"
 ALT_TABLE_NAME = "other-table"
+REGION_TST_TABLE_NAME = "table_with_split_key-" + str(int(time.time()))
 TTL_FOR_TEST = 3
 COL_FAM1 = "cf1"
 COL_FAM2 = "cf2"
@@ -886,12 +888,12 @@ class TestTable_region(BaseTableTest):
     def test_region(self):
         from google.cloud.bigtable.table import Table as _LowLevelTable
 
-        ALT_TABLE_NAME = "table_with_split_key"
+        REGION_TST_TABLE_NAME = "table_with_split_key"
         connection = Config.CONNECTION
-        _low_level_table = _LowLevelTable(ALT_TABLE_NAME, connection._instance)
+        _low_level_table = _LowLevelTable(REGION_TST_TABLE_NAME, connection._instance)
         _low_level_table.create(initial_split_keys=INITIAL_SPLIT_KEYS)
-        table = connection.table(ALT_TABLE_NAME)
-        self.assertTrue(ALT_TABLE_NAME in connection.tables())
+        table = connection.table(REGION_TST_TABLE_NAME)
+        self.assertTrue(REGION_TST_TABLE_NAME in connection.tables())
         regions = table.regions()
         self.assertEqual(
             [
@@ -901,5 +903,5 @@ class TestTable_region(BaseTableTest):
             ],
             regions,
         )
-        connection.delete_table(ALT_TABLE_NAME)
-        self.assertFalse(ALT_TABLE_NAME in connection.tables())
+        connection.delete_table(REGION_TST_TABLE_NAME)
+        self.assertFalse(REGION_TST_TABLE_NAME in connection.tables())

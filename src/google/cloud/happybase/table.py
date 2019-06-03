@@ -140,22 +140,22 @@ class Table(object):
     def regions(self):
         """Retrieve the regions for this table.
 
-        :rtype: list
-        :returns: A list of regions with start_key and end_key.
-                  region is dictionay with attribute start_key and end_key.
-                  empty table have a region with None byte start_key and end_key.
+        :rtype: List[dict]
+        :returns: A list of mappings for each region in the table.
+                  Each mapping contains keys ``start_key`` and ``end_key``.
         """
-        regions = []
-        start_key = b""
-        for sample_row_key in self._low_level_table.sample_row_keys():
-            end_key = sample_row_key.row_key
-            if start_key is not end_key:
-                regions.append(dict(start_key=start_key, end_key=end_key))
-                start_key = end_key
-        end_key = b""
-        if not regions or start_key is not end_key:
-            regions.append(dict(start_key=start_key, end_key=end_key))
-        return regions
+        end_key_iter = self._low_level_table.sample_row_keys()
+        end_keys = [key.row_key for key in end_key_iter]
+        if len(end_keys) > 0 and end_keys[0] == b"":
+            end_keys.pop(0)
+        if len(end_keys) > 0 and end_keys[-1] == b"":
+            end_keys.pop(-1)
+        start_keys = [b""] + end_keys
+        end_keys = end_keys + [b""]
+        return [
+            {"start_key": start_key, "end_key": end_key}
+            for start_key, end_key in zip(start_keys, end_keys)
+        ]
 
     def row(self, row, columns=None, timestamp=None, include_timestamp=False):
         """Retrieve a single row of data.

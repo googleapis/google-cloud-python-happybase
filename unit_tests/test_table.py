@@ -120,6 +120,9 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
+        table._low_level_table.sample_row_keys_result = [
+            _MockSampleRowKey(row_key) for row_key in initial_split_keys
+        ]
         expected_region_list = [
             dict(start_key=b"", end_key=b"split_key_01"),
             dict(start_key=b"split_key_01", end_key=b"split_key_10"),
@@ -135,6 +138,9 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
+        table._low_level_table.sample_row_keys_result = [
+            _MockSampleRowKey(row_key) for row_key in initial_split_keys
+        ]
         expected_region_list = [
             dict(start_key=b"", end_key=b"split_key_01"),
             dict(start_key=b"split_key_01", end_key=b""),
@@ -149,6 +155,22 @@ class TestTable(unittest.TestCase):
         table = self._make_one(name, connection)
         table._low_level_table = _MockLowLevelTable()
         table._low_level_table.initial_split_keys = initial_split_keys
+        table._low_level_table.sample_row_keys_result = [
+            _MockSampleRowKey(row_key) for row_key in initial_split_keys
+        ]
+        region_list = table.regions()
+        self.assertEqual(region_list, [dict(start_key=b"", end_key=b"")])
+
+    def test_region_blank_row_key(self):
+        name = "table-name"
+        connection = None
+        initial_split_keys = []
+        table = self._make_one(name, connection)
+        table._low_level_table = _MockLowLevelTable()
+        table._low_level_table.initial_split_keys = initial_split_keys
+        table._low_level_table.sample_row_keys_result = [
+            _MockSampleRowKey(row_key) for row_key in initial_split_keys
+        ]
         region_list = table.regions()
         self.assertEqual(region_list, [dict(start_key=b"", end_key=b"")])
 
@@ -1476,8 +1498,6 @@ class _MockLowLevelTable(object):
             yield curr_row_data
 
     def sample_row_keys(self):
-        for row_key in self.initial_split_keys:
-            self.sample_row_keys_result.append(_MockSampleRowKey(row_key))
         return self.sample_row_keys_result
 
 

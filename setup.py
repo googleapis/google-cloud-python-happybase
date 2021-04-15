@@ -14,8 +14,7 @@
 
 import os
 
-from setuptools import find_packages
-from setuptools import setup
+import setuptools
 
 version = '0.33.0'
 
@@ -58,7 +57,7 @@ REQUIREMENTS = [
 
 SETUP_BASE.pop('url')
 
-setup(
+setuptools.setup(
     name='google-cloud-happybase',
     version=setuptools.sic(version),
     description='Client library for Google Cloud Bigtable: HappyBase layer',
@@ -68,7 +67,7 @@ setup(
         'google',
         'google.cloud',
     ],
-    packages=find_packages('src'),
+    packages=setuptools.find_packages('src'),
     package_dir={'': 'src'},
     install_requires=REQUIREMENTS,
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',

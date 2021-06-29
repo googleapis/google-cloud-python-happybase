@@ -66,7 +66,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(table.name, name)
         self.assertEqual(table.connection, connection)
 
-        table_instance, = tables_constructed
+        (table_instance,) = tables_constructed
         self.assertEqual(table._low_level_table, table_instance)
         self.assertEqual(table_instance.args, (name, instance))
         self.assertEqual(table_instance.kwargs, {})
@@ -708,7 +708,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, None)
 
         # Check how the batch was created and used.
-        batch, = batches_created
+        (batch,) = batches_created
         self.assertTrue(isinstance(batch, _MockBatch))
         self.assertEqual(batch.args, (table,))
         expected_kwargs = {
@@ -746,7 +746,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, None)
 
         # Check how the batch was created and used.
-        batch, = batches_created
+        (batch,) = batches_created
         self.assertTrue(isinstance(batch, _MockBatch))
         self.assertEqual(batch.args, (table,))
         expected_kwargs = {
@@ -889,7 +889,7 @@ class TestTable(unittest.TestCase):
         self.assertEqual(result, None)
 
         # Check how the batch was created and used.
-        batch, = batches_created
+        (batch,) = batches_created
         self.assertTrue(isinstance(batch, _MockBatch))
         self.assertEqual(batch.args, (table,))
         expected_kwargs = {

@@ -38,7 +38,7 @@ class Test__get_instance(unittest.TestCase):
 
         # If we've reached this point, then _call_fut didn't fail, so we know
         # there is exactly one instance.
-        instance, = instances
+        (instance,) = instances
         self.assertEqual(result, instance)
         client = instance.client
         self.assertEqual(client.args, ())
@@ -299,7 +299,7 @@ class TestConnection(unittest.TestCase):
             connection.create_table(name, families)
 
         # Just one table would have been created.
-        table_instance, = tables_created
+        (table_instance,) = tables_created
         self.assertEqual(table_instance.args, (name, instance))
         self.assertEqual(table_instance.kwargs, {})
         self.assertEqual(table_instance.create_calls, 1)
@@ -389,7 +389,7 @@ class TestConnection(unittest.TestCase):
             connection.delete_table(name, disable=disable)
 
         # Just one table would have been created.
-        table_instance, = tables_created
+        (table_instance,) = tables_created
         self.assertEqual(table_instance.args, (name, instance))
         self.assertEqual(table_instance.kwargs, {})
         self.assertEqual(table_instance.delete_calls, 1)

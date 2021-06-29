@@ -57,14 +57,14 @@ def blacken(session):
     session.run("black", "noxfile.py", "src", "docs", "unit_tests", "system_tests")
 
 
-@nox.session(python=["2.7", "3.4", "3.5", "3.6", "3.7"])
+@nox.session(python=["3.6", "3.7", "3.8", "3.9"])
 def unit(session):
     session.install("pytest", "mock")
     session.install(".")
     session.run("py.test", "--quiet", "unit_tests")
 
 
-@nox.session(python=["2.7", "3.7"])
+@nox.session(python=["3.7"])
 def system(session):
     session.install("pytest", "mock")
     session.install("-e", ".")

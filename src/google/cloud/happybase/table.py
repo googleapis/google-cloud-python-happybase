@@ -618,7 +618,7 @@ class Table(object):
         column_cell = column_cells[0]
         # Get the bytes value from the column and convert it to an integer.
         bytes_value = column_cell[0]
-        int_value, = _UNPACK_I64(bytes_value)
+        (int_value,) = _UNPACK_I64(bytes_value)
         return int_value
 
     def counter_dec(self, row, column, value=1):
@@ -688,8 +688,8 @@ def _gc_rule_to_dict(gc_rule):
             ):
                 rule1 = _gc_rule_to_dict(rule1)
                 rule2 = _gc_rule_to_dict(rule2)
-                key1, = rule1.keys()
-                key2, = rule2.keys()
+                (key1,) = rule1.keys()
+                (key2,) = rule2.keys()
                 if key1 != key2:
                     result = {key1: rule1[key1], key2: rule2[key2]}
     return result
@@ -982,16 +982,14 @@ def _columns_filter_helper(columns):
 
 
 def _get_row_set_object(row_start, row_stop):
-    """Return a RowSet object for the given row_start and row_stop
-    """
+    """Return a RowSet object for the given row_start and row_stop"""
     row_set = RowSet()
     row_set.add_row_range_from_keys(start_key=row_start, end_key=row_stop)
     return row_set
 
 
 def _get_row_set_from_rows(rows):
-    """Return a RowSet object for the given rows
-    """
+    """Return a RowSet object for the given rows"""
     row_set = RowSet()
     for row_key in rows:
         row_set.add_row_key(row_key)

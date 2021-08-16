@@ -1,0 +1,11 @@
+{
+    "name": "google-cloud-happybase",
+    "name_pretty": "Google Cloud Python HappyBase Client",
+    "client_documentation": "https://google-cloud-python-happybase.readthedocs.io/en/latest/",
+    "release_level": "beta",
+    "language": "python",
+    "library_type": "INTEGRATION",
+    "repo": "googleapis/google-cloud-python-happybase",
+    "distribution_name": "google-cloud-happybase",
+    "api_id": "bigtable.googleapis.com"
+}

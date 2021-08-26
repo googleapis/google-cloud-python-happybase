@@ -152,7 +152,8 @@ html_favicon = "_static/images/favicon.ico"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_add_permalinks = "#"
+html_permalinks = True
+html_permalinks_icon = "#"
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

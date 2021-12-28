@@ -7,6 +7,5 @@
     "library_type": "INTEGRATION",
     "repo": "googleapis/google-cloud-python-happybase",
     "distribution_name": "google-cloud-happybase",
-    "api_id": "bigtable.googleapis.com",
-    "api_shortname": "google-cloud-happybase"
+    "api_id": "bigtable.googleapis.com"
 }

@@ -2,7 +2,7 @@
     "name": "google-cloud-happybase",
     "name_pretty": "Google Cloud Python HappyBase Client",
     "client_documentation": "https://google-cloud-python-happybase.readthedocs.io/en/latest/",
-    "release_level": "beta",
+    "release_level": "preview",
     "language": "python",
     "library_type": "INTEGRATION",
     "repo": "googleapis/google-cloud-python-happybase",

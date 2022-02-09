@@ -1,5 +1,6 @@
 import nox
 
+BLACK_VERSION = "black==19.10b0"
 
 @nox.session(python="3.6")
 def cover(session):
@@ -66,7 +67,7 @@ def lint(session):
     Returns a failure if the linters find linting errors or sufficiently
     serious code quality issues.
     """
-    session.install("flake8", "black")
+    session.install("flake8", BLACK_VERSION)
     session.run("black", "--check", "src", "docs", "unit_tests", "system_tests")
     session.run(
         "flake8", *FLAKE8_COMMON_ARGS, "src/google", "unit_tests", "system_tests"
@@ -75,7 +76,7 @@ def lint(session):
 
 @nox.session(python="3.6")
 def blacken(session):
-    session.install("black")
+    session.install(BLACK_VERSION)
     session.run("black", "noxfile.py", "src", "docs", "unit_tests", "system_tests")
 
 

@@ -30,5 +30,5 @@ export GOOGLE_APPLICATION_CREDENTIALS=${KOKORO_GFILE_DIR}/service-account.json
 # TODO: Setup project id.
 export PROJECT_ID=$(cat "${KOKORO_GFILE_DIR}/project-id.json")
 
-python3.6 -m pip install nox
-python3.6 -m nox
+python -m pip install nox
+python -m nox

@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Copyright 2018 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,21 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 set -eo pipefail
 
 # Start the releasetool reporter
-python3 -m pip install gcp-releasetool
+python3 -m pip install --require-hashes -r github/google-cloud-python-happybase/.kokoro/requirements.txt
 python3 -m releasetool publish-reporter-script > /tmp/publisher-script; source /tmp/publisher-script
-
-# Ensure that we have the latest versions of Twine, Wheel, and Setuptools.
-python3 -m pip install --upgrade twine wheel setuptools
 
 # Disable buffering, so that the logs stream through.
 export PYTHONUNBUFFERED=1
 
 # Move into the package, build the distribution and upload.
-TWINE_PASSWORD=$(cat "${KOKORO_KEYSTORE_DIR}/73713_google_cloud_pypi_password")
+TWINE_PASSWORD=$(cat "${KOKORO_KEYSTORE_DIR}/73713_google-cloud-pypi-token-keystore-1")
 cd github/google-cloud-python-happybase
 python3 setup.py sdist bdist_wheel
-twine upload --username gcloudpypi --password "${TWINE_PASSWORD}" dist/*
+twine upload --username __token__ --password "${TWINE_PASSWORD}" dist/*
